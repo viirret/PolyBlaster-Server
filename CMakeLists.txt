@@ -10,3 +10,4 @@ add_definitions(-DDEBUG)
 include_directories(src)
 file(GLOB sources src/*.cc)
 add_executable(x ${sources})
+
