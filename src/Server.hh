@@ -24,6 +24,7 @@ class Server
 		char** argc;
 
 		std::string subStr(const std::string& str, int n);
+		bool positionVector(const std::string& cmd);
 };
 
 #endif

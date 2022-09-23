@@ -18,11 +18,21 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 
 				std::string cmd;
 				received >> cmd;
+				
+				std::cout << cmd << std::endl;
 
 				if(subStr(cmd, 4) == "join")
 				{
 					server.send(cnn, "join", websocketpp::frame::opcode::text);
 
+					return;
+				}
+				else if(subStr(cmd, 8) == "position")
+				{
+					if(!positionVector(cmd))
+					{
+						std::cout << "Something went wrong!" << std::endl;
+					}
 					return;
 				}
 				else
@@ -76,5 +86,61 @@ std::string Server::subStr(const std::string& str, int n)
 	if(str.length() < n)
 		return str;
 	return str.substr(0, n);
+}
+
+bool Server::positionVector(const std::string& cmd)
+{
+	int n = 0;
+	std::string arg, client, x, y, z;
+
+	for(std::string::size_type i = 0; i < cmd.size(); i++)
+	{
+		if(cmd[i] == ':')
+		{
+			n++;
+		}
+		else
+		{
+			if(n <= 0)
+			{
+				arg += cmd[i];
+			}
+			else if(n <= 1)
+			{
+				client += cmd[i];
+			}
+			else if(n <= 2)
+			{
+				x += cmd[i];
+			}
+			else if(n <= 3)
+			{
+				y += cmd[i];
+			}
+			else if(n <= 4)
+			{
+				z += cmd[i];
+			}
+			else
+			{
+				std::cout << "Message failed!" << std::endl;
+				return false;
+			}
+		}
+	}
+
+	std::string command;
+	std::stringstream ss;
+
+	ss << arg << ":" << client << ":" << x << ":" << y << ":" << z;
+	ss >> command;
+
+	// send position for each client
+	for(auto& c : connections)
+	{
+		server.send(c, command, websocketpp::frame::opcode::text);
+	}
+
+	return true;
 }
 
