@@ -8,4 +8,7 @@ mkdir build
 cd build
 cmake ..
 make
-./x
+
+mkdir -p $HOME/PolyBlaster
+
+cp ./x $HOME/PolyBlaster/server
