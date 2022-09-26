@@ -23,8 +23,10 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 
 				if(subStr(cmd, 4) == "join")
 				{
-					server.send(cnn, "join", websocketpp::frame::opcode::text);
-
+					for(auto& c : connections)
+					{
+						server.send(c, cmd, websocketpp::frame::opcode::text);
+					}
 					return;
 				}
 				else if(subStr(cmd, 3) == "pos")
