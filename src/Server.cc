@@ -27,7 +27,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 
 					return;
 				}
-				else if(subStr(cmd, 8) == "position")
+				else if(subStr(cmd, 3) == "pos")
 				{
 					if(!positionVector(cmd))
 					{
