@@ -29,6 +29,16 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					}
 					return;
 				}
+
+				else if(subStr(cmd, 5) == "shoot")
+				{
+					for(auto& c : connections)
+					{
+						server.send(c, cmd, websocketpp::frame::opcode::text);
+					}
+					return;
+				}
+				
 				else if(subStr(cmd, 3) == "pos")
 				{
 					if(!positionVector(cmd))
