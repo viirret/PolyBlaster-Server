@@ -14,59 +14,93 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 		{
 			try 
 			{
-				std::stringstream received(msg->get_payload());
-
-				std::string cmd;
-				received >> cmd;
-				
+				std::string cmd = msg->get_payload();
 				std::cout << cmd << std::endl;
 
-				if(subStr(cmd, 4) == "join")
+				Room* room = findRoom(cnn);
+				if(room)
+					room->handleMessage(cnn, cmd);
+
+				else if(Util::subStr(cmd, 5) == "create")
 				{
-					for(auto& c : connections)
+					int n = 0;
+					std::string id;
+					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
-						server.send(c, cmd, websocketpp::frame::opcode::text);
+						if(cmd[i] == ':')
+						{
+							n++;
+						}
+						else
+						{
+							id += cmd[i];
+						}
 					}
+
+					if(id.empty())
+						return;
+
+					if(rooms.find(id) != rooms.end())
+					{
+						server.send(cnn, "room-exists", websocketpp::frame::opcode::text);
+						return;
+					}
+
+					auto room = rooms.emplace(id, Room(server));
+					room.first->second.addConnection(cnn);
 					return;
 				}
 
-				else if(subStr(cmd, 5) == "shoot")
+				else if(cmd == "list")
 				{
-					for(auto& c : connections)
-					{
-						server.send(c, cmd, websocketpp::frame::opcode::text);
-					}
+					std::ostringstream roomData;
+					roomData << "list";
+
+					for(auto& room : rooms)
+						roomData << ":" << room.first << room.second.getStatus().str();
+
+					server.send(cnn, roomData.str(), websocketpp::frame::opcode::text);
 					return;
 				}
-				
-				else if(subStr(cmd, 3) == "pos")
+				else if(Util::subStr(cmd, 4) == "join")
 				{
-					if(!positionVector(cmd))
+					int n = 0;
+					std::string roomName;
+					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
-						std::cout << "Something went wrong!" << std::endl;
+						if(cmd[i] == ':')
+						{
+							n++;
+						}
+						else
+						{
+							roomName += cmd[i];
+						}
 					}
+
+					auto it = rooms.find(roomName);
+
+					if(it == rooms.end())
+					{
+						server.send(cnn, "invalid-room", websocketpp::frame::opcode::text);
+						return;
+					}
+					
+					it->second.addConnection(cnn);
 					return;
 				}
+
 				else
 				{
-					std::cout << "Unknown message!" << std::endl;
+					server.send(cnn, "invalid", websocketpp::frame::opcode::text);
 				}
+
 
 			}
 			catch (websocketpp::exception const &e)
 			{
 				std::cout << "Echo failed because: " << e.what() << std::endl;
 			}
-		});
-
-		server.set_open_handler([this](Connection cnn)
-		{
-			connections.insert(cnn);
-		});
-
-		server.set_close_handler([this](Connection cnn)
-		{
-			connections.erase(cnn);
 		});
 
 		unsigned port = 8080;
@@ -92,67 +126,13 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 	}
 }
 
-
-std::string Server::subStr(const std::string& str, int n)
+Room* Server::findRoom(Connection& cnn)
 {
-	if(str.length() < n)
-		return str;
-	return str.substr(0, n);
+	for(auto& room : rooms)
+		if(room.second.connectionHere(cnn))
+			return &room.second;
+
+	return nullptr;
 }
 
-bool Server::positionVector(const std::string& cmd)
-{
-	int n = 0;
-	std::string arg, client, x, y, z;
-
-	for(std::string::size_type i = 0; i < cmd.size(); i++)
-	{
-		if(cmd[i] == ':')
-		{
-			n++;
-		}
-		else
-		{
-			if(n <= 0)
-			{
-				arg += cmd[i];
-			}
-			else if(n <= 1)
-			{
-				client += cmd[i];
-			}
-			else if(n <= 2)
-			{
-				x += cmd[i];
-			}
-			else if(n <= 3)
-			{
-				y += cmd[i];
-			}
-			else if(n <= 4)
-			{
-				z += cmd[i];
-			}
-			else
-			{
-				std::cout << "Message failed!" << std::endl;
-				return false;
-			}
-		}
-	}
-
-	std::string command;
-	std::stringstream ss;
-
-	ss << arg << ":" << client << ":" << x << ":" << y << ":" << z;
-	ss >> command;
-
-	// send position for each client
-	for(auto& c : connections)
-	{
-		server.send(c, command, websocketpp::frame::opcode::text);
-	}
-
-	return true;
-}
 
