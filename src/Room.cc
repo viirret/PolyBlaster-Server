@@ -49,6 +49,14 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
+	else if(Util::subStr(cmd, 4) == "util")
+	{
+		for(auto& c : connections)
+		{
+			server.send(c, cmd, websocketpp::frame::opcode::text);
+		}
+		return;
+	}
 
 	else if(Util::subStr(cmd, 3) == "pos")
 	{
