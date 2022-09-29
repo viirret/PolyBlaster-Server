@@ -21,7 +21,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 				if(room)
 					room->handleMessage(cnn, cmd);
 
-				else if(Util::subStr(cmd, 5) == "create")
+				else if(Util::subStr(cmd, 6) == "create")
 				{
 					int n = 0;
 					std::string id;
@@ -31,7 +31,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						{
 							n++;
 						}
-						else
+						else if(n >= 1)
 						{
 							id += cmd[i];
 						}
@@ -57,11 +57,12 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					roomData << "list";
 
 					for(auto& room : rooms)
-						roomData << ":" << room.first << room.second.getStatus().str();
+						roomData << room.first << ":" << room.second.getStatus().str() << ";";
 
 					server.send(cnn, roomData.str(), websocketpp::frame::opcode::text);
 					return;
 				}
+
 				else if(Util::subStr(cmd, 4) == "join")
 				{
 					int n = 0;
@@ -72,7 +73,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						{
 							n++;
 						}
-						else
+						else if(n >= 1)
 						{
 							roomName += cmd[i];
 						}
@@ -87,6 +88,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					}
 					
 					it->second.addConnection(cnn);
+
 					return;
 				}
 
@@ -99,7 +101,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 			}
 			catch (websocketpp::exception const &e)
 			{
-				std::cout << "Echo failed because: " << e.what() << std::endl;
+				std::cout << "Failed because: " << e.what() << std::endl;
 			}
 		});
 

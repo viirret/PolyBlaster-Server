@@ -12,6 +12,15 @@ bool Room::connectionHere(Connection& cnn)
 void Room::addConnection(Connection& cnn)
 {
 	connections.emplace(cnn);
+
+	auto conn = server.get_con_from_hdl(cnn);
+	conn->set_close_handler([this](Connection connection)
+	{
+		connections.erase(connections.find(connection));
+	});
+
+	// inform the client that it joined the game
+	server.send(cnn, "joined", websocketpp::frame::opcode::text);
 }
 
 std::ostringstream Room::getStatus()
@@ -31,7 +40,16 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
-	
+
+	else if(Util::subStr(cmd, 9) == "newplayer")
+	{
+		for(auto& c : connections)
+		{
+			server.send(c, cmd, websocketpp::frame::opcode::text);
+		}
+		return;
+	}
+
 	else if(Util::subStr(cmd, 3) == "pos")
 	{
 		if(!positionVector(cmd))
@@ -40,6 +58,7 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
+
 	else
 	{
 		std::cout << "Unknown message!" << std::endl;
