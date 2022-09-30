@@ -13,7 +13,6 @@
 
 typedef websocketpp::server<websocketpp::config::asio> Websocket;
 typedef websocketpp::connection_hdl Connection;
-typedef std::set<Connection, std::owner_less<Connection>> ConnectionList;
 typedef Websocket::message_ptr Message;
 
 class Server

@@ -9,9 +9,9 @@ bool Room::connectionHere(Connection& cnn)
 	return connections.find(cnn) != connections.end();
 }
 
-void Room::addConnection(Connection& cnn)
+void Room::addConnection(Connection& cnn, const std::string& playerID)
 {
-	connections.emplace(cnn);
+	connections.emplace(cnn, Player(playerID));
 
 	auto conn = server.get_con_from_hdl(cnn);
 	conn->set_close_handler([this](Connection connection)
@@ -36,7 +36,7 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 	{
 		for(auto& c : connections)
 		{
-			server.send(c, cmd, websocketpp::frame::opcode::text);
+			server.send(c.first, cmd, websocketpp::frame::opcode::text);
 		}
 		return;
 	}
@@ -45,7 +45,7 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 	{
 		for(auto& c : connections)
 		{
-			server.send(c, cmd, websocketpp::frame::opcode::text);
+			server.send(c.first, cmd, websocketpp::frame::opcode::text);
 		}
 		return;
 	}
@@ -53,14 +53,14 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 	{
 		for(auto& c : connections)
 		{
-			server.send(c, cmd, websocketpp::frame::opcode::text);
+			server.send(c.first, cmd, websocketpp::frame::opcode::text);
 		}
 		return;
 	}
 
 	else if(Util::subStr(cmd, 3) == "pos")
 	{
-		if(!positionVector(cmd))
+		if(!positionVector(cmd, cnn))
 		{
 			std::cout << "Something went wrong!" << std::endl;
 		}
@@ -73,7 +73,7 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 	}
 }
 
-bool Room::positionVector(const std::string& cmd)
+bool Room::positionVector(const std::string& cmd, const Connection& cnn)
 {
 	int n = 0;
 	std::string arg, client, x, y, z;
@@ -114,6 +114,11 @@ bool Room::positionVector(const std::string& cmd)
 		}
 	}
 
+	float _x = Util::toFloat(x), _y = Util::toFloat(y), _z = Util::toFloat(x);
+
+	if(!connections.find(cnn)->second.checkPos(_x, _y, _z))
+		return false;
+
 	std::string command;
 	std::stringstream ss;
 
@@ -123,7 +128,7 @@ bool Room::positionVector(const std::string& cmd)
 	// send position for each client
 	for(auto& c : connections)
 	{
-		server.send(c, command, websocketpp::frame::opcode::text);
+		server.send(c.first, command, websocketpp::frame::opcode::text);
 	}
 
 	return true;

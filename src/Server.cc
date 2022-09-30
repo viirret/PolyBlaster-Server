@@ -24,16 +24,24 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 				else if(Util::subStr(cmd, 6) == "create")
 				{
 					int n = 0;
-					std::string id;
+					std::string id, playerID;
 					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
 						if(cmd[i] == ':')
 						{
 							n++;
 						}
-						else if(n >= 1)
+						else if(n <= 0)
+						{
+							// "create"
+						}
+						else if(n <= 1)
 						{
 							id += cmd[i];
+						}
+						else if(n <= 2)
+						{
+							playerID += cmd[i];
 						}
 					}
 
@@ -47,7 +55,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					}
 
 					auto room = rooms.emplace(id, Room(server));
-					room.first->second.addConnection(cnn);
+					room.first->second.addConnection(cnn, playerID);
 					return;
 				}
 
@@ -66,16 +74,24 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 				else if(Util::subStr(cmd, 4) == "join")
 				{
 					int n = 0;
-					std::string roomName;
+					std::string roomName, playerID;
 					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
 						if(cmd[i] == ':')
 						{
 							n++;
 						}
-						else if(n >= 1)
+						else if(n <= 0)
+						{
+							// "join"
+						}
+						else if(n <= 1)
 						{
 							roomName += cmd[i];
+						}
+						else if(n <= 2)
+						{
+							playerID += cmd[i];
 						}
 					}
 
@@ -87,7 +103,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						return;
 					}
 					
-					it->second.addConnection(cnn);
+					it->second.addConnection(cnn, playerID);
 
 					return;
 				}
@@ -115,7 +131,6 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 		server.run();
 
 	}
-
 	
 	catch (websocketpp::exception const &e)
 	{

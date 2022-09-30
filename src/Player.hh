@@ -6,10 +6,15 @@
 class Player
 {
 	public:
-		Player(std::string name);
+		Player(std::string playerID);
+		bool checkPos(float nx, float ny, float nz);
 	
 	private:
-		std::string name;
+		void changePos(float x, float y, float z);
+
+		float x = 0.0f, y = 0.0f, z = 0.0f;
+		std::string playerID;
+		float CM = 5.0f;
 };
 
 #endif

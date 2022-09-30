@@ -2,6 +2,7 @@
 #define ROOM_HH
 
 #include "Util.hh"
+#include "Player.hh"
 
 #include "websocketpp/server.hpp"
 #include "websocketpp/config/asio_no_tls.hpp"
@@ -9,10 +10,11 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <map>
 
 typedef websocketpp::server<websocketpp::config::asio> Websocket;
 typedef websocketpp::connection_hdl Connection;
-typedef std::set<Connection, std::owner_less<Connection>> ConnectionList;
+typedef std::map<Connection, Player, std::owner_less<Connection>> ConnectionList;
 
 class Room
 {
@@ -21,16 +23,17 @@ class Room
 
 		void handleMessage(Connection& cnn, std::string& cmd);
 		bool connectionHere(Connection& cnn);
-		void addConnection(Connection& cnn);
+		void addConnection(Connection& cnn, const std::string& playerID);
 
 		std::ostringstream getStatus();
 	
 	private:
-		bool positionVector(const std::string& cmd);
+		bool positionVector(const std::string& cmd, const Connection& cnn);
 
 		ConnectionList connections;
 		Websocket& server;
 
+		// default value for max players
 		int maxPlayers = 10;
 };
 
