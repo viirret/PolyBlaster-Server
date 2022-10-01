@@ -9,6 +9,8 @@ bool Room::connectionHere(Connection& cnn)
 	return connections.find(cnn) != connections.end();
 }
 
+ConnectionList Room::getConnections() { return connections; }
+
 void Room::addConnection(Connection& cnn, const std::string& playerID)
 {
 	connections.emplace(cnn, Player(playerID));

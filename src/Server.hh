@@ -29,6 +29,7 @@ class Server
 		char** argc;
 
 		std::unordered_map<std::string, Room> rooms;
+		int allConnections = 0;
 };
 
 #endif

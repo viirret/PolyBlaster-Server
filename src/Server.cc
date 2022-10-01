@@ -1,6 +1,7 @@
 #include "Server.hh"
 
 #include <iostream>
+#include <thread>
 
 Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 {
@@ -145,7 +146,35 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 		server.start_accept();
 		std::cout << "Server running on port: " << port << std::endl;
 
-		// if need new threads, create here
+		std::thread updatePlayerCount([this]()
+		{
+			for(;;)
+			{
+				// connections not in a room
+				int amount = connections.size();
+				
+				// connections from all lobbies
+				for(auto& r : rooms)
+				{
+					amount += r.second.getConnections().size();
+				}
+
+				// amount of connections changed
+				if(amount != allConnections)
+				{
+					std::string msg = "updateConnections:" + std::to_string(amount);
+
+					for(auto& c : connections)	
+					{
+						server.send(c, msg, websocketpp::frame::opcode::text);
+					}
+					allConnections = amount;
+				}
+			}
+		});
+
+		updatePlayerCount.detach();
+
 
 		server.run();
 
