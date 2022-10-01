@@ -26,7 +26,7 @@ class Room
 		void addConnection(Connection& cnn, const std::string& playerID);
 
 		std::ostringstream getStatus();
-	
+
 	private:
 		bool positionVector(const std::string& cmd, const Connection& cnn);
 

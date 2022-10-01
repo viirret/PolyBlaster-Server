@@ -11,9 +11,8 @@
 #include <sstream>
 #include <unordered_map>
 
-typedef websocketpp::server<websocketpp::config::asio> Websocket;
-typedef websocketpp::connection_hdl Connection;
 typedef Websocket::message_ptr Message;
+typedef std::set<Connection, std::owner_less<Connection>> LobbyConnections;
 
 class Server
 {
@@ -21,8 +20,10 @@ class Server
 		Server(int argv, char** argc);
 	private:
 		Room* findRoom(Connection& cnn);
+		void removeLobbyConnection(Connection cnn);
 
 		Websocket server;
+		LobbyConnections connections;
 
 		int argv;
 		char** argc;

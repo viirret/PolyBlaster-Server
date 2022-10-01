@@ -55,7 +55,15 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					}
 
 					auto room = rooms.emplace(id, Room(server));
+
+					removeLobbyConnection(cnn);
 					room.first->second.addConnection(cnn, playerID);
+
+					for(auto& c : connections)
+					{
+						server.send(c, "newroom", websocketpp::frame::opcode::text);
+					}
+
 					return;
 				}
 
@@ -103,6 +111,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						return;
 					}
 					
+					removeLobbyConnection(cnn);
 					it->second.addConnection(cnn, playerID);
 
 					return;
@@ -119,6 +128,16 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 			{
 				std::cout << "Failed because: " << e.what() << std::endl;
 			}
+		});
+
+		server.set_open_handler([this](Connection cnn)
+		{
+			connections.insert(cnn);
+		});
+
+		server.set_close_handler([this](Connection cnn)
+		{
+			removeLobbyConnection(cnn);
 		});
 
 		unsigned port = 8080;
@@ -141,6 +160,12 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 	{
 		std::cout << "Other exception" << std::endl;
 	}
+}
+
+void Server::removeLobbyConnection(Connection cnn)
+{
+	if(connections.find(cnn) != connections.end())
+		connections.erase(cnn);
 }
 
 Room* Server::findRoom(Connection& cnn)
