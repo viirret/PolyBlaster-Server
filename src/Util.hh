@@ -8,6 +8,6 @@ namespace Util
 {
 	std::string subStr(const std::string& str, int n);
 	float toFloat(const std::string& str);
-};
+}
 
 #endif

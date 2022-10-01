@@ -32,6 +32,7 @@ std::ostringstream Room::getStatus()
 
 void Room::handleMessage(Connection& cnn, std::string& cmd)
 {
+	// all the messages inside one room
 	if(Util::subStr(cmd, 5) == "shoot")
 	{
 		for(auto& c : connections)
@@ -40,7 +41,6 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
-
 	else if(Util::subStr(cmd, 9) == "newplayer")
 	{
 		for(auto& c : connections)
@@ -57,7 +57,14 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
-
+	else if(Util::subStr(cmd, 3) == "rot")
+	{
+		for(auto& c : connections)
+		{
+			server.send(c.first, cmd, websocketpp::frame::opcode::text);
+		}
+		return;
+	}
 	else if(Util::subStr(cmd, 3) == "pos")
 	{
 		if(!positionVector(cmd, cnn))
@@ -66,7 +73,6 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
-
 	else
 	{
 		std::cout << "Unknown message!" << std::endl;
