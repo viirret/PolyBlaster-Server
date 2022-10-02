@@ -67,6 +67,14 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
+	else if(Util::subStr(cmd, 4) == "chat")
+	{
+		for(auto& c : connections)
+		{
+			server.send(c.first, cmd, websocketpp::frame::opcode::text);
+		}
+		return;
+	}
 	else if(Util::subStr(cmd, 3) == "pos")
 	{
 		if(!positionVector(cmd, cnn))
