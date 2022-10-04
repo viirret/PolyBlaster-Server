@@ -35,6 +35,8 @@ std::ostringstream Room::getStatus()
 
 void Room::handleMessage(Connection& cnn, std::string& cmd)
 {
+	// STATIC MESSAGES
+
 	// all the messages inside one room
 	if(Util::subStr(cmd, 5) == "shoot")
 	{
@@ -95,6 +97,21 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
+
+	// GAMEMODE SPESIFIC MESSAGES
+	else if(mode == GameMode::team_deathmatch)
+	{
+		if(Util::subStr(cmd, 4) == "dead")
+		{
+			for(auto& c : connections)
+			{
+				// here also respawn function
+				server.send(c.first, cmd, websocketpp::frame::opcode::text);
+			}
+			return;
+		}
+	}
+
 	else
 	{
 		std::cout << "Unknown message!" << std::endl;
