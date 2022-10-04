@@ -25,7 +25,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 				else if(Util::subStr(cmd, 6) == "create")
 				{
 					int n = 0;
-					std::string id, playerID;
+					std::string id, playerID, max, mode;
 					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
 						if(cmd[i] == ':')
@@ -44,6 +44,14 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						{
 							playerID += cmd[i];
 						}
+						else if(n <= 3)
+						{
+							max += cmd[i];
+						}
+						else if(n <= 4)
+						{
+							mode += cmd[i];
+						}
 					}
 
 					if(id.empty())
@@ -55,7 +63,17 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						return;
 					}
 
-					auto room = rooms.emplace(id, Room(server));
+					std::stringstream ss;
+					int gameMode;
+					ss << mode;
+					ss >> gameMode;
+
+					std::stringstream ss2;
+					int maxint;
+					ss2 << max;
+					ss2 >> maxint;
+
+					auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode)));
 
 					removeLobbyConnection(cnn);
 					room.first->second.addConnection(cnn, playerID);

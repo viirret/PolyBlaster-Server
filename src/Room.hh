@@ -16,10 +16,16 @@ typedef websocketpp::server<websocketpp::config::asio> Websocket;
 typedef websocketpp::connection_hdl Connection;
 typedef std::map<Connection, Player, std::owner_less<Connection>> ConnectionList;
 
+enum class GameMode
+{
+	team_deathmatch,
+	something_else
+};
+
 class Room
 {
 	public:
-		Room(Websocket& server);
+		Room(Websocket& server, std::string creator, int max, GameMode mode);
 
 		void handleMessage(Connection& cnn, std::string& cmd);
 		bool connectionHere(Connection& cnn);
@@ -34,8 +40,11 @@ class Room
 		ConnectionList connections;
 		Websocket& server;
 
+		std::string creator;
+
 		// default value for max players
-		int maxPlayers = 10;
+		int max = 10;
+		GameMode mode;
 };
 
 #endif

@@ -1,6 +1,7 @@
 #include "Room.hh"
 
-Room::Room(Websocket& server) : server(server)
+Room::Room(Websocket& server, std::string creator, int max, GameMode mode) 
+	: server(server), creator(creator), max(max), mode(mode)
 {
 }
 
@@ -28,7 +29,7 @@ void Room::addConnection(Connection& cnn, const std::string& playerID)
 std::ostringstream Room::getStatus()
 {
 	std::ostringstream ss;
-	ss << connections.size() << ":" << maxPlayers;
+	ss << connections.size() << ":" << max;
 	return ss;
 }
 
@@ -75,6 +76,17 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
+
+	else if(Util::subStr(cmd, 8) == "roominfo")
+	{
+		int x = (int)mode;
+		for(auto& c : connections)
+		{
+			server.send(c.first, "roominfo:creator:" + creator + ":max:" + std::to_string(max) + ":mode:" + std::to_string(x), websocketpp::frame::opcode::text);
+		}
+		return;
+	}
+	
 	else if(Util::subStr(cmd, 3) == "pos")
 	{
 		if(!positionVector(cmd, cnn))
