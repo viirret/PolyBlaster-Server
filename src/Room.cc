@@ -103,6 +103,44 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 	{
 		if(Util::subStr(cmd, 4) == "dead")
 		{
+			int n = 0;
+			std::string command, player, team;
+			for(std::string::size_type i = 0; i < cmd.size(); i++)
+			{
+				if(cmd[i] == ':')
+				{
+					n++;
+				}
+				else if(n <= 0)
+				{
+					command += cmd[i];
+				}
+				else if(n <= 1)
+				{
+					player += cmd[i];
+				}
+				else if(n <= 2)
+				{
+					team += cmd[i];
+				}
+			}
+
+			// string to int
+			std::stringstream ss;
+			int intteam;
+			ss << team;
+			ss >> intteam;
+
+			// these might be opposite
+			if(intteam == 0)
+			{
+				scoreA++;
+			}
+			else if(intteam == 1)
+			{
+				scoreB++;
+			}
+
 			for(auto& c : connections)
 			{
 				// here also respawn function
@@ -116,6 +154,47 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 	{
 		std::cout << "Unknown message!" << std::endl;
 	}
+}
+
+void Room::update()
+{
+	std::thread updateRoom([this]()
+	{
+		for(;;)
+		{
+			if(!start)
+			{
+				// initializing scores
+				if(mode == GameMode::team_deathmatch)		
+				{
+					scoreA = 0;
+					scoreB = 0;
+					oldScoreA = 0;
+					oldScoreB = 0;
+				}
+
+				if(oldScoreA != scoreA || oldScoreB != scoreB)
+				{
+					std::string updateScore = "updatescores:" + std::to_string(scoreA) + ":" + std::to_string(scoreB);
+
+					for(auto& c : connections)
+					{
+						server.send(c.first, updateScore, websocketpp::frame::opcode::text);
+					}
+
+					oldScoreA = scoreA;
+					oldScoreB = scoreB;
+				}
+
+
+				start = true;
+			}
+
+			std::cout << "updating server" << std::endl;
+		}
+	});
+
+	updateRoom.detach();
 }
 
 bool Room::positionVector(const std::string& cmd, const Connection& cnn)

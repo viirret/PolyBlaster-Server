@@ -30,6 +30,7 @@ class Room
 		void handleMessage(Connection& cnn, std::string& cmd);
 		bool connectionHere(Connection& cnn);
 		void addConnection(Connection& cnn, const std::string& playerID);
+		void update();
 
 		std::ostringstream getStatus();
 		ConnectionList getConnections();
@@ -45,6 +46,11 @@ class Room
 		// default value for max players
 		int max = 10;
 		GameMode mode;
+
+		bool start = false;
+
+		int scoreA, scoreB;
+		int oldScoreA, oldScoreB;
 };
 
 #endif

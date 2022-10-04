@@ -73,7 +73,9 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					ss2 << max;
 					ss2 >> maxint;
 
-					auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode)));
+					auto r = Room(server, playerID, maxint, static_cast<GameMode>(gameMode));
+					auto room = rooms.emplace(id, r);
+					r.update();
 
 					removeLobbyConnection(cnn);
 					room.first->second.addConnection(cnn, playerID);
@@ -192,7 +194,6 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 		});
 
 		updatePlayerCount.detach();
-
 
 		server.run();
 
