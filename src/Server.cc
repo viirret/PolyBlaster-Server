@@ -92,7 +92,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					roomData << "list";
 
 					for(auto& room : rooms)
-						roomData << room.first << ":" << room.second.getStatus().str() << ";";
+						roomData << ":" << room.first << ":" << room.second.getStatus().str() << ";";
 
 					server.send(cnn, roomData.str(), websocketpp::frame::opcode::text);
 					return;
