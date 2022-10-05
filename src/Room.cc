@@ -158,6 +158,7 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 
 void Room::update()
 {
+	/*
 	std::thread updateRoom([this]()
 	{
 		for(;;)
@@ -203,10 +204,12 @@ void Room::update()
 					server.send(c.first, "victory:1", websocketpp::frame::opcode::text);
 				}
 			}
+
 		}
 	});
 
 	updateRoom.detach();
+	*/
 }
 
 bool Room::positionVector(const std::string& cmd, const Connection& cnn)
