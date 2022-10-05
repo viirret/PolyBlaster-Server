@@ -49,8 +49,7 @@ class Room
 
 		bool start = false;
 
-		int scoreA, scoreB;
-		int oldScoreA, oldScoreB;
+		int scoreA, scoreB, oldScoreA, oldScoreB, maxScore;
 };
 
 #endif

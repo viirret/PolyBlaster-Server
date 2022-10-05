@@ -172,25 +172,37 @@ void Room::update()
 					oldScoreA = 0;
 					oldScoreB = 0;
 				}
-
-				if(oldScoreA != scoreA || oldScoreB != scoreB)
-				{
-					std::string updateScore = "updatescores:" + std::to_string(scoreA) + ":" + std::to_string(scoreB);
-
-					for(auto& c : connections)
-					{
-						server.send(c.first, updateScore, websocketpp::frame::opcode::text);
-					}
-
-					oldScoreA = scoreA;
-					oldScoreB = scoreB;
-				}
-
-
 				start = true;
 			}
 
-			std::cout << "updating server" << std::endl;
+			if(oldScoreA != scoreA || oldScoreB != scoreB)
+			{
+				std::string updateScore = "updatescores:" + std::to_string(scoreA) + ":" + std::to_string(scoreB);
+
+				for(auto& c : connections)
+				{
+					server.send(c.first, updateScore, websocketpp::frame::opcode::text);
+				}
+
+				oldScoreA = scoreA;
+				oldScoreB = scoreB;
+			}
+
+			if(scoreA >= maxScore)
+			{
+				for(auto& c : connections)
+				{
+					server.send(c.first, "victory:0", websocketpp::frame::opcode::text);
+				}
+			}
+
+			if(scoreB >= maxScore)
+			{
+				for(auto& c : connections)
+				{
+					server.send(c.first, "victory:1", websocketpp::frame::opcode::text);
+				}
+			}
 		}
 	});
 
