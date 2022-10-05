@@ -1,5 +1,7 @@
 #include "Room.hh"
 
+#include <functional>
+
 Room::Room(Websocket& server, std::string creator, int max, GameMode mode) 
 	: server(server), creator(creator), max(max), mode(mode)
 {
@@ -158,26 +160,13 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 
 void Room::update()
 {
-	/*
 	std::thread updateRoom([this]()
 	{
 		for(;;)
 		{
-			if(!start)
-			{
-				// initializing scores
-				if(mode == GameMode::team_deathmatch)		
-				{
-					scoreA = 0;
-					scoreB = 0;
-					oldScoreA = 0;
-					oldScoreB = 0;
-				}
-				start = true;
-			}
-
 			if(oldScoreA != scoreA || oldScoreB != scoreB)
 			{
+				//std::cout << "SCORE CHANGED" << std::endl;
 				std::string updateScore = "updatescores:" + std::to_string(scoreA) + ":" + std::to_string(scoreB);
 
 				for(auto& c : connections)
@@ -191,6 +180,7 @@ void Room::update()
 
 			if(scoreA >= maxScore)
 			{
+				//std::cout << "A REACHED MAX SCORE" << std::endl;
 				for(auto& c : connections)
 				{
 					server.send(c.first, "victory:0", websocketpp::frame::opcode::text);
@@ -199,17 +189,16 @@ void Room::update()
 
 			if(scoreB >= maxScore)
 			{
+				//std::cout << "B REACHED MAX SCORE" << std::endl;
 				for(auto& c : connections)
 				{
 					server.send(c.first, "victory:1", websocketpp::frame::opcode::text);
 				}
 			}
-
 		}
 	});
 
 	updateRoom.detach();
-	*/
 }
 
 bool Room::positionVector(const std::string& cmd, const Connection& cnn)

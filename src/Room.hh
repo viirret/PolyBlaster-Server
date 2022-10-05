@@ -47,9 +47,7 @@ class Room
 		int max = 10;
 		GameMode mode;
 
-		bool start = false;
-
-		int scoreA, scoreB, oldScoreA, oldScoreB, maxScore;
+		int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, maxScore = 200;
 };
 
 #endif
