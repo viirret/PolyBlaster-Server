@@ -86,7 +86,7 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
-	else if(Util::subStr(cmd, 13) == "friendlyFire")
+	else if(Util::subStr(cmd, 12) == "friendlyFire")
 	{
 		int f = friendlyFire ? 1 : 0;
 
@@ -199,6 +199,7 @@ void Room::update()
 				{
 					server.send(c.first, "victory:0", websocketpp::frame::opcode::text);
 				}
+				arg1 = 0;
 			}
 
 			if(scoreB >= arg1)
@@ -207,6 +208,7 @@ void Room::update()
 				{
 					server.send(c.first, "victory:1", websocketpp::frame::opcode::text);
 				}
+				arg1 = 0;
 			}
 		}
 	});
