@@ -25,7 +25,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 				else if(Util::subStr(cmd, 6) == "create")
 				{
 					int n = 0;
-					std::string id, playerID, max, mode, arg1;
+					std::string id, playerID, max, mode, arg1, friendlyFire;
 					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
 						if(cmd[i] == ':')
@@ -54,6 +54,10 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						}
 						else if(n <= 5)
 						{
+							friendlyFire += cmd[i];
+						}
+						else if(n <= 6)
+						{
 							arg1 += cmd[i];
 						}
 					}
@@ -79,11 +83,18 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					ss2 >> maxint;
 
 					std::stringstream ss3;
-					int arg1int;
-					ss3 << arg1;
-					ss3 >> arg1int;
+					int intFriendlyFire;
+					ss3 << friendlyFire;
+					ss3 >> intFriendlyFire;
 
-					auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode), arg1int));
+					std::stringstream ss4;
+					int arg1int;
+					ss4 << arg1;
+					ss4 >> arg1int;
+
+					bool boolFriendlyFire = intFriendlyFire == 1 ? true : false;
+
+					auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode), boolFriendlyFire, arg1int));
 					room.first->second.update();
 
 					removeLobbyConnection(cnn);

@@ -1,7 +1,7 @@
 #include "Room.hh"
 
-Room::Room(Websocket& server, std::string creator, int max, GameMode mode, int arg1)
-	: server(server), creator(creator), max(max), mode(mode), arg1(arg1)
+Room::Room(Websocket& server, std::string creator, int max, GameMode mode, bool friendlyFire, int arg1)
+	: server(server), creator(creator), max(max), mode(mode), friendlyFire(friendlyFire), arg1(arg1)
 {
 }
 
@@ -83,6 +83,16 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		for(auto& c : connections)
 		{
 			server.send(c.first, "arg1:" + std::to_string(arg1), websocketpp::frame::opcode::text);
+		}
+		return;
+	}
+	else if(Util::subStr(cmd, 13) == "friendlyFire")
+	{
+		int f = friendlyFire ? 1 : 0;
+
+		for(auto& c : connections)
+		{
+			server.send(c.first, std::to_string(f), websocketpp::frame::opcode::text);
 		}
 		return;
 	}
