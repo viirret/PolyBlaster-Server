@@ -25,7 +25,7 @@ enum class GameMode
 class Room
 {
 	public:
-		Room(Websocket& server, std::string creator, int max, GameMode mode);
+		Room(Websocket& server, std::string creator, int max, GameMode mode, int arg1);
 
 		void handleMessage(Connection& cnn, std::string& cmd);
 		bool connectionHere(Connection& cnn);
@@ -47,7 +47,7 @@ class Room
 		int max = 10;
 		GameMode mode;
 
-		int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, maxScore = 200;
+		int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, arg1 = 0;
 };
 
 #endif

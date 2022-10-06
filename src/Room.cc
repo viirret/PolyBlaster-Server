@@ -1,9 +1,7 @@
 #include "Room.hh"
 
-#include <functional>
-
-Room::Room(Websocket& server, std::string creator, int max, GameMode mode) 
-	: server(server), creator(creator), max(max), mode(mode)
+Room::Room(Websocket& server, std::string creator, int max, GameMode mode, int arg1)
+	: server(server), creator(creator), max(max), mode(mode), arg1(arg1)
 {
 }
 
@@ -77,6 +75,14 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		for(auto& c : connections)
 		{
 			server.send(c.first, cmd, websocketpp::frame::opcode::text);
+		}
+		return;
+	}
+	else if(Util::subStr(cmd, 4) == "arg1")
+	{
+		for(auto& c : connections)
+		{
+			server.send(c.first, "arg1:" + std::to_string(arg1), websocketpp::frame::opcode::text);
 		}
 		return;
 	}
@@ -166,7 +172,6 @@ void Room::update()
 		{
 			if(oldScoreA != scoreA || oldScoreB != scoreB)
 			{
-				//std::cout << "SCORE CHANGED" << std::endl;
 				std::string updateScore = "updatescores:" + std::to_string(scoreA) + ":" + std::to_string(scoreB);
 
 				for(auto& c : connections)
@@ -178,18 +183,16 @@ void Room::update()
 				oldScoreB = scoreB;
 			}
 
-			if(scoreA >= maxScore)
+			if(scoreA >= arg1)
 			{
-				//std::cout << "A REACHED MAX SCORE" << std::endl;
 				for(auto& c : connections)
 				{
 					server.send(c.first, "victory:0", websocketpp::frame::opcode::text);
 				}
 			}
 
-			if(scoreB >= maxScore)
+			if(scoreB >= arg1)
 			{
-				//std::cout << "B REACHED MAX SCORE" << std::endl;
 				for(auto& c : connections)
 				{
 					server.send(c.first, "victory:1", websocketpp::frame::opcode::text);
