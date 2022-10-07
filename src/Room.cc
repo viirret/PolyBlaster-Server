@@ -86,7 +86,7 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 		}
 		return;
 	}
-	else if(Util::subStr(cmd, 12) == "friendlyFire")
+	if(Util::subStr(cmd, 12) == "friendlyFire")
 	{
 		int f = friendlyFire ? 1 : 0;
 
@@ -256,11 +256,6 @@ bool Room::positionVector(const std::string& cmd, const Connection& cnn)
 			}
 		}
 	}
-
-	float _x = Util::toFloat(x), _y = Util::toFloat(y), _z = Util::toFloat(x);
-
-	if(!connections.find(cnn)->second.checkPos(_x, _y, _z))
-		return false;
 
 	std::string command;
 	std::stringstream ss;
