@@ -7,7 +7,19 @@
 namespace Util
 {
 	std::string subStr(const std::string& str, int n);
-	float toFloat(const std::string& str);
 }
+
+template<typename T>
+class strTo
+{
+	public:
+		static T value(std::string& str)
+		{
+			T num;
+			std::stringstream ss(str);
+			ss >> num;
+			return num;
+		}
+};
 
 #endif

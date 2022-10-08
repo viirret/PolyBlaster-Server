@@ -144,10 +144,7 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 			}
 
 			// string to int
-			std::stringstream ss;
-			int intteam;
-			ss << team;
-			ss >> intteam;
+			int intteam = strTo<int>::value(team);
 
 			// these might be opposite
 			if(intteam == 0)

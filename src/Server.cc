@@ -72,27 +72,12 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					}
 
 					// convert string arguments to int
-					std::stringstream ss;
-					int gameMode;
-					ss << mode;
-					ss >> gameMode;
+					int gameMode = strTo<int>::value(mode);
+					int maxint = strTo<int>::value(max);
+					int intFriendlyFire = strTo<int>::value(friendlyFire);
+					int arg1int = strTo<int>::value(arg1);
 
-					std::stringstream ss2;
-					int maxint;
-					ss2 << max;
-					ss2 >> maxint;
-
-					std::stringstream ss3;
-					int intFriendlyFire;
-					ss3 << friendlyFire;
-					ss3 >> intFriendlyFire;
-
-					std::stringstream ss4;
-					int arg1int;
-					ss4 << arg1;
-					ss4 >> arg1int;
-
-					bool boolFriendlyFire = intFriendlyFire == 1 ? true : false;
+					bool boolFriendlyFire = intFriendlyFire == 1;
 
 					auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode), boolFriendlyFire, arg1int));
 					room.first->second.update();
