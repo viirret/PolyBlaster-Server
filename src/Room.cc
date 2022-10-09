@@ -196,7 +196,7 @@ void Room::update()
 				{
 					server.send(c.first, "victory:0", websocketpp::frame::opcode::text);
 				}
-				arg1 = 0;
+				scoreA = 0;
 			}
 
 			if(scoreB >= arg1)
@@ -205,7 +205,7 @@ void Room::update()
 				{
 					server.send(c.first, "victory:1", websocketpp::frame::opcode::text);
 				}
-				arg1 = 0;
+				scoreB = 0;
 			}
 		}
 	});
