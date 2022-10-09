@@ -167,6 +167,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 		});
 
 		unsigned port = 8080;
+		server.set_reuse_addr(true);
 		server.listen(port);
 		server.start_accept();
 		std::cout << "Server running on port: " << port << std::endl;
