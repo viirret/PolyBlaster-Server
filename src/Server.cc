@@ -16,6 +16,9 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 			try 
 			{
 				std::string cmd = msg->get_payload();
+
+				// this is the incoming message that gets resent
+				// optimize sending this back
 				std::cout << cmd << std::endl;
 
 				Room* room = findRoom(cnn);
