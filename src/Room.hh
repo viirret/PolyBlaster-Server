@@ -22,15 +22,6 @@ enum class GameMode
 	something_else
 };
 
-// storage for special commands
-enum class cmd
-{
-	pos,
-	dead,
-	roominfo,
-	friendlyFire,
-};
-
 class Room
 {
 	public:
@@ -47,7 +38,6 @@ class Room
 	private:
 		bool positionVector(const std::string& cmd, const Connection& cnn);
 		void broadcast(const std::string& cmd);
-		void excludeOwn(const std::string& cmd, const Connection& cnn);
 
 		ConnectionList connections;
 		Websocket& server;
@@ -61,6 +51,15 @@ class Room
 		int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, arg1 = 0;
 		bool friendlyFire = false;
 
+		// storage for special commands
+		enum class cmd
+		{
+			pos,
+			dead,
+			roominfo,
+			friendlyFire,
+		};
+
 		// special commands
 		std::map<std::string, cmd> commands = 
 		{
@@ -69,7 +68,6 @@ class Room
 			{"roominfo", cmd::roominfo},
 			{"friendlyFire", cmd::friendlyFire}
 		};
-
 };
 
 #endif

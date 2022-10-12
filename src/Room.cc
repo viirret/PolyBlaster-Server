@@ -35,11 +35,22 @@ std::ostringstream Room::getStatus()
 
 void Room::handleMessage(Connection& cnn, const std::string& msg)
 {
-	switch(commands[msg])
+	// identifier for command, works for all commands
+	std::string fw;
+	for(std::string::size_type i = 0; i < msg.size(); i++)
+	{
+		if(msg[i] == ':') break;
+		else fw += msg[i];
+	}
+
+	switch(commands[fw])
 	{
 		case cmd::pos:
 		{
-			positionVector(msg, cnn);
+			if(!positionVector(msg, cnn))
+			{
+				// something something, error error
+			}
 			return;
 		}
 
@@ -47,24 +58,19 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		case cmd::dead:
 		{
 			int n = 0;
-			std::string command, player, team;
+			std::string player, team;
 			for(std::string::size_type i = 0; i < msg.size(); i++)
 			{
 				if(msg[i] == ':')
-				{
 					n++;
-				}
-				else if(n <= 0)
+				else
 				{
-					command += msg[i];
-				}
-				else if(n <= 1)
-				{
-					player += msg[i];
-				}
-				else if(n <= 2)
-				{
-					team += msg[i];
+					switch(n)
+					{
+						case 0: break;
+						case 1: player += msg[i]; break;
+						case 2: team += msg[i]; break;
+					}
 				}
 			}
 
@@ -108,18 +114,6 @@ void Room::broadcast(const std::string& msg)
 	for(auto& c : connections)
 		server.send(c.first, msg, websocketpp::frame::opcode::text);
 }
-
-/*
-void Room::excludeOwn(const std::string& msg, const Connection& cnn)
-{
-	for(auto& c : connections)
-	{
-		// compare c.first and cnn
-		if(c.first != cnn)
-			server.send(c.first, msg, websocketpp::frame::opcode::text);
-	}
-}
-*/
 
 void Room::update()
 {
@@ -173,35 +167,21 @@ bool Room::positionVector(const std::string& cmd, const Connection& cnn)
 	for(std::string::size_type i = 0; i < cmd.size(); i++)
 	{
 		if(cmd[i] == ':')
-		{
 			n++;
-		}
 		else
 		{
-			if(n <= 0)
+			switch(n)
 			{
-				arg += cmd[i];
-			}
-			else if(n <= 1)
-			{
-				client += cmd[i];
-			}
-			else if(n <= 2)
-			{
-				x += cmd[i];
-			}
-			else if(n <= 3)
-			{
-				y += cmd[i];
-			}
-			else if(n <= 4)
-			{
-				z += cmd[i];
-			}
-			else
-			{
-				std::cout << "Message failed!" << std::endl;
-				return false;
+				case 0: arg += cmd[i]; break;
+				case 1: client += cmd[i]; break;
+				case 2: x += cmd[i]; break;
+				case 3: y += cmd[i]; break;
+				case 4: z += cmd[i]; break;
+				default: 
+				{
+					std::cout << "Message failed!" << std::endl;
+					return false;
+				}
 			}
 		}
 	}
@@ -213,10 +193,7 @@ bool Room::positionVector(const std::string& cmd, const Connection& cnn)
 	ss >> command;
 
 	// send position for each client
-	for(auto& c : connections)
-	{
-		server.send(c.first, command, websocketpp::frame::opcode::text);
-	}
+	broadcast(command);
 
 	return true;
 }

@@ -24,134 +24,125 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 
 				Room* room = findRoom(cnn);
 				if(room)
+				{
 					room->handleMessage(cnn, cmd);
-
-				else if(Util::subStr(cmd, 6) == "create")
+					return;
+				}
+				
+				std::string fw;
+				for(std::string::size_type i = 0; i < cmd.size(); i++)
 				{
-					int n = 0;
-					std::string id, playerID, max, mode, arg1, friendlyFire;
-					for(std::string::size_type i = 0; i < cmd.size(); i++)
-					{
-						if(cmd[i] == ':')
-						{
-							n++;
-						}
-						else if(n <= 0)
-						{
-							// "create"
-						}
-						else if(n <= 1)
-						{
-							id += cmd[i];
-						}
-						else if(n <= 2)
-						{
-							playerID += cmd[i];
-						}
-						else if(n <= 3)
-						{
-							max += cmd[i];
-						}
-						else if(n <= 4)
-						{
-							mode += cmd[i];
-						}
-						else if(n <= 5)
-						{
-							friendlyFire += cmd[i];
-						}
-						else if(n <= 6)
-						{
-							arg1 += cmd[i];
-						}
-					}
+					if(cmd[i] == ':') break;
+					else fw += cmd[i];
+				}
 
-					if(id.empty())
-						return;
-
-					if(rooms.find(id) != rooms.end())
+				switch(commands[fw])
+				{
+					case cmd::join:
 					{
-						server.send(cnn, "room-exists", websocketpp::frame::opcode::text);
+						int n = 0;
+						std::string roomName, playerID;
+						for(std::string::size_type i = 0; i < cmd.size(); i++)
+						{
+							if(cmd[i] == ':')
+								n++;
+							
+							else
+							{
+								switch(n)
+								{
+									case 0: break;
+									case 1: roomName += cmd[i]; break;
+									case 2: playerID += cmd[i]; break;
+								}
+							}
+						}
+						
+						auto it = rooms.find(roomName);
+
+						if(it == rooms.end())
+						{
+							server.send(cnn, "invalid-room", websocketpp::frame::opcode::text);
+							return;
+						}
+						
+						removeLobbyConnection(cnn);
+						it->second.addConnection(cnn, playerID);
+
 						return;
 					}
 
-					// convert string arguments to int
-					int gameMode = strTo<int>::value(mode);
-					int maxint = strTo<int>::value(max);
-					int intFriendlyFire = strTo<int>::value(friendlyFire);
-					int arg1int = strTo<int>::value(arg1);
-
-					bool boolFriendlyFire = intFriendlyFire == 1;
-
-					auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode), boolFriendlyFire, arg1int));
-					room.first->second.update();
-
-					removeLobbyConnection(cnn);
-					room.first->second.addConnection(cnn, playerID);
-
-					for(auto& c : connections)
+					case cmd::list:
 					{
-						server.send(c, "newroom", websocketpp::frame::opcode::text);
-					}
+						std::ostringstream roomData;
+						roomData << "list";
 
-					return;
-				}
+						for(auto& room : rooms)
+							roomData << ":" << room.first << ":" << room.second.getStatus().str() << ";";
 
-				else if(cmd == "list")
-				{
-					std::ostringstream roomData;
-					roomData << "list";
-
-					for(auto& room : rooms)
-						roomData << ":" << room.first << ":" << room.second.getStatus().str() << ";";
-
-					server.send(cnn, roomData.str(), websocketpp::frame::opcode::text);
-					return;
-				}
-
-				else if(Util::subStr(cmd, 4) == "join")
-				{
-					int n = 0;
-					std::string roomName, playerID;
-					for(std::string::size_type i = 0; i < cmd.size(); i++)
-					{
-						if(cmd[i] == ':')
-						{
-							n++;
-						}
-						else if(n <= 0)
-						{
-							// "join"
-						}
-						else if(n <= 1)
-						{
-							roomName += cmd[i];
-						}
-						else if(n <= 2)
-						{
-							playerID += cmd[i];
-						}
-					}
-
-					auto it = rooms.find(roomName);
-
-					if(it == rooms.end())
-					{
-						server.send(cnn, "invalid-room", websocketpp::frame::opcode::text);
+						server.send(cnn, roomData.str(), websocketpp::frame::opcode::text);
 						return;
 					}
-					
-					removeLobbyConnection(cnn);
-					it->second.addConnection(cnn, playerID);
 
-					return;
+					case cmd::create:
+					{
+						int n = 0;
+						std::string id, playerID, max, mode, arg1, friendlyFire;
+						for(std::string::size_type i = 0; i < cmd.size(); i++)
+						{
+							if(cmd[i] == ':')
+								n++;
+							else
+							{
+								switch(n)
+								{
+									case 0: break;
+									case 1: id += cmd[i]; break;
+									case 2: playerID += cmd[i]; break;
+									case 3: max += cmd[i]; break;
+									case 4: mode += cmd[i]; break;
+									case 5: friendlyFire += cmd[i]; break;
+									case 6: arg1 += cmd[i]; break;
+									default: std::cout << "Something went wrong!" << std::endl;
+								}
+							}
+						}
+
+						if(id.empty())
+						{
+							return;
+						}
+
+						if(rooms.find(id) != rooms.end())
+						{
+							server.send(cnn, "room-exists", websocketpp::frame::opcode::text);
+							return;
+						}
+
+						// convert string arguments to int
+						int gameMode = strTo<int>::value(mode);
+						int maxint = strTo<int>::value(max);
+						int intFriendlyFire = strTo<int>::value(friendlyFire);
+						int arg1int = strTo<int>::value(arg1);
+
+
+						bool boolFriendlyFire = intFriendlyFire == 1;
+
+						auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode), boolFriendlyFire, arg1int));
+						room.first->second.update();
+
+						removeLobbyConnection(cnn);
+						room.first->second.addConnection(cnn, playerID);
+
+						// info other clients of new room
+						broadcast("newroom");
+
+						return;
+					}
 				}
-
-				else
-				{
-					server.send(cnn, "invalid", websocketpp::frame::opcode::text);
-				}
-
+				
+				// inform client of faulty command
+				server.send(cnn, "invalid", websocketpp::frame::opcode::text);
 
 			}
 			catch (websocketpp::exception const &e)
@@ -193,11 +184,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 				if(amount != allConnections)
 				{
 					std::string msg = "updateConnections:" + std::to_string(amount);
-
-					for(auto& c : connections)	
-					{
-						server.send(c, msg, websocketpp::frame::opcode::text);
-					}
+					broadcast(msg);
 					allConnections = amount;
 				}
 			}
@@ -220,10 +207,16 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 	}
 }
 
-void Server::removeLobbyConnection(Connection cnn)
+void Server::removeLobbyConnection(Connection& cnn)
 {
 	if(connections.find(cnn) != connections.end())
 		connections.erase(cnn);
+}
+
+void Server::broadcast(const std::string& msg)
+{
+	for(auto& c : connections)
+		server.send(c, msg, websocketpp::frame::opcode::text);
 }
 
 Room* Server::findRoom(Connection& cnn)
