@@ -45,11 +45,11 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 	switch(commands[fw])
 	{
-		case cmd::pos:
+		case cmd::up:
 		{
-			if(!positionVector(msg, cnn))
+			if(!updatePlayer(msg, cnn))
 			{
-				// something something, error error
+				std::cout << "Updating player failed!" << std::endl;
 			}
 			return;
 		}
@@ -159,10 +159,10 @@ void Room::update()
 	updateRoom.detach();
 }
 
-bool Room::positionVector(const std::string& cmd, const Connection& cnn)
+bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 {
 	int n = 0;
-	std::string arg, client, x, y, z;
+	std::string arg, client, px, py, pz, rx, ry, rz;
 
 	for(std::string::size_type i = 0; i < cmd.size(); i++)
 	{
@@ -174,9 +174,12 @@ bool Room::positionVector(const std::string& cmd, const Connection& cnn)
 			{
 				case 0: arg += cmd[i]; break;
 				case 1: client += cmd[i]; break;
-				case 2: x += cmd[i]; break;
-				case 3: y += cmd[i]; break;
-				case 4: z += cmd[i]; break;
+				case 2: px += cmd[i]; break;
+				case 3: py += cmd[i]; break;
+				case 4: pz += cmd[i]; break;
+				case 5: rx += cmd[i]; break;
+				case 6: ry += cmd[i]; break;
+				case 7: rz += cmd[i]; break;
 				default: 
 				{
 					std::cout << "Message failed!" << std::endl;
@@ -189,8 +192,10 @@ bool Room::positionVector(const std::string& cmd, const Connection& cnn)
 	std::string command;
 	std::stringstream ss;
 
-	ss << arg << ":" << client << ":" << x << ":" << y << ":" << z;
+	ss << arg << ":" << client << ":" << px << ":" << py << ":" << pz << ":" << rx << ":" << ry << ":" << rz;
 	ss >> command;
+
+	// here we can do some checks for the command, if needed in the future
 
 	// send position for each client
 	broadcast(command);

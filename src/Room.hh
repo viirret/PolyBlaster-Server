@@ -36,7 +36,7 @@ class Room
 		ConnectionList getConnections();
 
 	private:
-		bool positionVector(const std::string& cmd, const Connection& cnn);
+		bool updatePlayer(const std::string& cmd, const Connection& cnn);
 		void broadcast(const std::string& cmd);
 
 		ConnectionList connections;
@@ -54,7 +54,7 @@ class Room
 		// storage for special commands
 		enum class cmd
 		{
-			pos,
+			up,
 			dead,
 			roominfo,
 			friendlyFire,
@@ -63,7 +63,7 @@ class Room
 		// special commands
 		std::map<std::string, cmd> commands = 
 		{
-			{"pos", cmd::pos},
+			{"up", cmd::up},
 			{"dead", cmd::dead},
 			{"roominfo", cmd::roominfo},
 			{"friendlyFire", cmd::friendlyFire}
