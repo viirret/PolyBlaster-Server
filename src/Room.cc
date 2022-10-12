@@ -33,113 +33,38 @@ std::ostringstream Room::getStatus()
 	return ss;
 }
 
-void Room::handleMessage(Connection& cnn, std::string& cmd)
+void Room::handleMessage(Connection& cnn, const std::string& msg)
 {
-	// STATIC MESSAGES
+	switch(commands[msg])
+	{
+		case cmd::pos:
+		{
+			positionVector(msg, cnn);
+			return;
+		}
 
-	// all the messages inside one room
-	if(Util::subStr(cmd, 5) == "shoot")
-	{
-		for(auto& c : connections)
-		{
-			server.send(c.first, cmd, websocketpp::frame::opcode::text);
-		}
-		return;
-	}
-	else if(Util::subStr(cmd, 9) == "newplayer")
-	{
-		for(auto& c : connections)
-		{
-			server.send(c.first, cmd, websocketpp::frame::opcode::text);
-		}
-		return;
-	}
-	else if(Util::subStr(cmd, 4) == "util")
-	{
-		for(auto& c : connections)
-		{
-			server.send(c.first, cmd, websocketpp::frame::opcode::text);
-		}
-		return;
-	}
-	else if(Util::subStr(cmd, 3) == "rot")
-	{
-		for(auto& c : connections)
-		{
-			server.send(c.first, cmd, websocketpp::frame::opcode::text);
-		}
-		return;
-	}
-	else if(Util::subStr(cmd, 4) == "chat")
-	{
-		for(auto& c : connections)
-		{
-			server.send(c.first, cmd, websocketpp::frame::opcode::text);
-		}
-		return;
-	}
-	else if(Util::subStr(cmd, 4) == "arg1")
-	{
-		for(auto& c : connections)
-		{
-			server.send(c.first, "arg1:" + std::to_string(arg1), websocketpp::frame::opcode::text);
-		}
-		return;
-	}
-	if(Util::subStr(cmd, 12) == "friendlyFire")
-	{
-		int f = friendlyFire ? 1 : 0;
-
-		for(auto& c : connections)
-		{
-			server.send(c.first, std::to_string(f), websocketpp::frame::opcode::text);
-		}
-		return;
-	}
-
-	else if(Util::subStr(cmd, 8) == "roominfo")
-	{
-		int x = (int)mode;
-		for(auto& c : connections)
-		{
-			server.send(c.first, "roominfo:creator:" + creator + ":max:" + std::to_string(max) + ":mode:" + std::to_string(x), websocketpp::frame::opcode::text);
-		}
-		return;
-	}
-	
-	else if(Util::subStr(cmd, 3) == "pos")
-	{
-		if(!positionVector(cmd, cnn))
-		{
-			std::cout << "Something went wrong!" << std::endl;
-		}
-		return;
-	}
-
-	// GAMEMODE SPESIFIC MESSAGES
-	else if(mode == GameMode::team_deathmatch)
-	{
-		if(Util::subStr(cmd, 4) == "dead")
+		// NOTE: this only works for the team deathmatch mode
+		case cmd::dead:
 		{
 			int n = 0;
 			std::string command, player, team;
-			for(std::string::size_type i = 0; i < cmd.size(); i++)
+			for(std::string::size_type i = 0; i < msg.size(); i++)
 			{
-				if(cmd[i] == ':')
+				if(msg[i] == ':')
 				{
 					n++;
 				}
 				else if(n <= 0)
 				{
-					command += cmd[i];
+					command += msg[i];
 				}
 				else if(n <= 1)
 				{
-					player += cmd[i];
+					player += msg[i];
 				}
 				else if(n <= 2)
 				{
-					team += cmd[i];
+					team += msg[i];
 				}
 			}
 
@@ -156,20 +81,45 @@ void Room::handleMessage(Connection& cnn, std::string& cmd)
 				scoreB++;
 			}
 
-			for(auto& c : connections)
-			{
-				// here also respawn function
-				server.send(c.first, cmd, websocketpp::frame::opcode::text);
-			}
+			broadcast(msg);
+			return;
+		}
+		
+		case cmd::friendlyFire:
+		{
+			broadcast("friendlyFire:" + std::to_string(friendlyFire));
+			return;
+		}
+		case cmd::roominfo:
+		{
+			broadcast("roominfo:" + creator + ":" + std::to_string(max) + ":" 
+			+ std::to_string(connections.size()) + ":" + std::to_string(arg1));
 			return;
 		}
 	}
 
-	else
+	// TODO find out all commands and you client needs to send it itself
+	// and run them in their own loop, or same why not
+	broadcast(msg);
+}
+
+void Room::broadcast(const std::string& msg)
+{
+	for(auto& c : connections)
+		server.send(c.first, msg, websocketpp::frame::opcode::text);
+}
+
+/*
+void Room::excludeOwn(const std::string& msg, const Connection& cnn)
+{
+	for(auto& c : connections)
 	{
-		std::cout << "Unknown message!" << std::endl;
+		// compare c.first and cnn
+		if(c.first != cnn)
+			server.send(c.first, msg, websocketpp::frame::opcode::text);
 	}
 }
+*/
 
 void Room::update()
 {
