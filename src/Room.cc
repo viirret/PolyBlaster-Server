@@ -1,5 +1,14 @@
 #include "Room.hh"
 
+#include <memory>
+
+// differentiate std::weak ptr from each other
+template <typename T, typename U>
+inline bool equals(const std::weak_ptr<T>& c1, const std::weak_ptr<U>& c2)
+{
+	return !c1.owner_before(c2) && !c2.owner_before(c1);
+}
+
 Room::Room(Websocket& server, std::string creator, int max, GameMode mode, bool friendlyFire, int arg1)
 	: server(server), creator(creator), max(max), mode(mode), friendlyFire(friendlyFire), arg1(arg1)
 {
@@ -115,6 +124,13 @@ void Room::broadcast(const std::string& msg)
 		server.send(c.first, msg, websocketpp::frame::opcode::text);
 }
 
+void Room::broadcast(const std::string& msg, const Connection& cnn)
+{
+	for(auto& c : connections)
+		if(!equals(c.first, cnn))
+			server.send(c.first, msg, websocketpp::frame::opcode::text);
+}
+
 void Room::update()
 {
 	std::thread updateRoom([this]()
@@ -197,8 +213,8 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 
 	// here we can do some checks for the command, if needed in the future
 
-	// send position for each client
-	broadcast(command);
+	// send position for each client except yourself
+	broadcast(command, cnn);
 
 	return true;
 }

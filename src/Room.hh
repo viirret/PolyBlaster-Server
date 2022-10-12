@@ -37,7 +37,12 @@ class Room
 
 	private:
 		bool updatePlayer(const std::string& cmd, const Connection& cnn);
+
+		// send message to every client
 		void broadcast(const std::string& cmd);
+
+		// send message to every client, except yourself
+		void broadcast(const std::string& cmd, const Connection& cnn);
 
 		ConnectionList connections;
 		Websocket& server;
