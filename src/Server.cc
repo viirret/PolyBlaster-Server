@@ -46,7 +46,6 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						{
 							if(cmd[i] == ':')
 								n++;
-							
 							else
 							{
 								switch(n)
