@@ -124,7 +124,6 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						int intFriendlyFire = strTo<int>::value(friendlyFire);
 						int arg1int = strTo<int>::value(arg1);
 
-
 						bool boolFriendlyFire = intFriendlyFire == 1;
 
 						auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode), boolFriendlyFire, arg1int));

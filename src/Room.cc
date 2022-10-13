@@ -63,9 +63,9 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
-		// NOTE: this only works for the team deathmatch mode
 		case cmd::dead:
 		{
+			// normal death
 			int n = 0;
 			std::string player, team;
 			for(std::string::size_type i = 0; i < msg.size(); i++)
@@ -83,23 +83,28 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 				}
 			}
 
-			// string to int
-			int intteam = strTo<int>::value(team);
+			// send message back to client confirming its death
+			server.send(cnn, msg, websocketpp::frame::opcode::text);
 
-			// these might be opposite
-			if(intteam == 0)
+			if(mode == GameMode::team_deathmatch)
 			{
-				scoreA++;
-			}
-			else if(intteam == 1)
-			{
-				scoreB++;
-			}
+				// string to int
+				int intteam = strTo<int>::value(team);
 
-			broadcast(msg);
+				// update scores
+				if(intteam == 0)
+					scoreA++;
+				else if(intteam == 1)
+					scoreB++;
+				
+				// send message back to server about respawning
+				server.send(cnn, "respawn", websocketpp::frame::opcode::text);
+
+				return;
+			}
 			return;
 		}
-		
+			
 		case cmd::friendlyFire:
 		{
 			broadcast("friendlyFire:" + std::to_string(friendlyFire));
