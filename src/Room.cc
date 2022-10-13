@@ -154,7 +154,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			server.send(cnn, info, websocketpp::frame::opcode::text);
 			return;
 		}
-			
+
 		case cmd::friendlyFire:
 		{
 			server.send(cnn, "friendlyFire:" + std::to_string(friendlyFire), websocketpp::frame::opcode::text);
@@ -174,6 +174,14 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			broadcast(msg, cnn);
 			return;
 		}
+
+		// default server act
+		case cmd::util:
+		{
+			broadcast(msg);
+			return;
+		}
+		
 	}
 
 	// TODO find out all commands and you client needs to send it itself

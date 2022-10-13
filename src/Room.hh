@@ -61,6 +61,7 @@ class Room
 		{
 			up,
 			dead,
+			util,
 			myteam,
 			getinfo,
 			roominfo,
@@ -73,6 +74,7 @@ class Room
 		{
 			{"up", cmd::up},
 			{"dead", cmd::dead},
+			{"util", cmd::util},
 			{"myteam", cmd::myteam},
 			{"getinfo", cmd::getinfo},
 			{"roominfo", cmd::roominfo},
