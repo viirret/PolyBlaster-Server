@@ -60,8 +60,10 @@ class Room
 		enum class cmd
 		{
 			up,
+			snd,
 			dead,
 			util,
+			chat,
 			myteam,
 			getinfo,
 			roominfo,
@@ -73,8 +75,10 @@ class Room
 		std::map<std::string, cmd> commands = 
 		{
 			{"up", cmd::up},
+			{"snd", cmd::snd},
 			{"dead", cmd::dead},
 			{"util", cmd::util},
+			{"chat", cmd::chat},
 			{"myteam", cmd::myteam},
 			{"getinfo", cmd::getinfo},
 			{"roominfo", cmd::roominfo},
