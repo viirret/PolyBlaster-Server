@@ -139,12 +139,16 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 			for(auto& c : connections)
 			{
-				info += c.second.getId();
-				info += ":";
-				info += c.second.getPos();
-				info += ":";
-				info += std::to_string(c.second.getTeam());
-				info += ";";
+				// do not send information about yourself, to yourself
+				if(!equals(c.first, cnn))
+				{
+					info += c.second.getId();
+					info += ":";
+					info += c.second.getPos();
+					info += ":";
+					info += std::to_string(c.second.getTeam());
+					info += ";";
+				}
 			}
 			
 			server.send(cnn, info, websocketpp::frame::opcode::text);
