@@ -13,7 +13,7 @@ template<typename T>
 class strTo
 {
 	public:
-		static T value(std::string& str)
+		static T value(const std::string& str)
 		{
 			T num;
 			std::stringstream ss(str);

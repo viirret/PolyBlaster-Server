@@ -61,7 +61,10 @@ class Room
 		{
 			up,
 			dead,
+			myteam,
+			getinfo,
 			roominfo,
+			newplayer,
 			friendlyFire,
 		};
 
@@ -70,7 +73,10 @@ class Room
 		{
 			{"up", cmd::up},
 			{"dead", cmd::dead},
+			{"myteam", cmd::myteam},
+			{"getinfo", cmd::getinfo},
 			{"roominfo", cmd::roominfo},
+			{"newplayer", cmd::newplayer},
 			{"friendlyFire", cmd::friendlyFire}
 		};
 };

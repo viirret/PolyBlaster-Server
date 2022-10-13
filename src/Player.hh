@@ -7,11 +7,17 @@ class Player
 {
 	public:
 		Player(std::string playerID);
-	private:
+		std::string getId();
+		std::string getPos();
+
 		void changePos(float x, float y, float z);
+
+		void setTeam(int team);
+		int getTeam();
+	private:
 		float x = 0.0f, y = 0.0f, z = 0.0f;
 		std::string playerID;
-		float CM = 5.0f;
+		int team = -1;
 };
 
 #endif

@@ -104,16 +104,70 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			}
 			return;
 		}
+
+		case cmd::myteam:
+		{
+			int n = 0;
+			std::string player, team;
+			for(std::string::size_type i = 0; i < msg.size(); i++)
+			{
+				if(msg[i] == ':')
+					n++;
+				else
+				{
+					switch(n)
+					{
+						case 0: break;	
+						case 1: player += msg[i]; break;
+						case 2: team += msg[i]; break;
+						default: std::cout << "Something went wrong!" << std::endl; break;
+					}
+				}
+
+				// set the team for player
+				for(auto& c : connections)
+					if(c.second.getId() == player)	
+						c.second.setTeam(strTo<int>::value(team));
+
+			}
+			return;
+		}
+
+		case cmd::getinfo:
+		{
+			std::string info = "getinfo:";
+
+			for(auto& c : connections)
+			{
+				info += c.second.getId();
+				info += ":";
+				info += c.second.getPos();
+				info += ":";
+				info += std::to_string(c.second.getTeam());
+				info += ";";
+			}
+			
+			server.send(cnn, info, websocketpp::frame::opcode::text);
+			return;
+		}
 			
 		case cmd::friendlyFire:
 		{
-			broadcast("friendlyFire:" + std::to_string(friendlyFire));
+			server.send(cnn, "friendlyFire:" + std::to_string(friendlyFire), websocketpp::frame::opcode::text);
 			return;
 		}
 		case cmd::roominfo:
 		{
-			broadcast("roominfo:" + creator + ":" + std::to_string(max) + ":" 
-			+ std::to_string(connections.size()) + ":" + std::to_string(arg1));
+			server.send(cnn, "roominfo:" + creator + ":" + std::to_string(max) + ":" 
+			+ std::to_string(connections.size()) + ":" + std::to_string(arg1), websocketpp::frame::opcode::text);
+			return;
+		}
+		
+		// by default all messages are sent to every client,
+		// these messages are not to be sent to itself
+		case cmd::newplayer:
+		{
+			broadcast(msg, cnn);
 			return;
 		}
 	}
@@ -215,6 +269,16 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 
 	ss << arg << ":" << client << ":" << px << ":" << py << ":" << pz << ":" << rx << ":" << ry << ":" << rz;
 	ss >> command;
+
+	float x = strTo<float>::value(px);
+	float y = strTo<float>::value(py);
+	float z = strTo<float>::value(pz);
+
+	// update position of the player
+	for(auto& c : connections)
+		if(c.second.getId() == client)
+			c.second.changePos(x, y, z);
+
 
 	// here we can do some checks for the command, if needed in the future
 
