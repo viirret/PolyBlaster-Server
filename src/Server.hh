@@ -2,6 +2,7 @@
 #define SERVER_HH
 
 #include "Room.hh"
+#include "Util.hh"
 
 #include "websocketpp/server.hpp"
 #include "websocketpp/config/asio_no_tls.hpp"
@@ -22,6 +23,7 @@ class Server
 
 	private:
 		Room* findRoom(Connection& cnn);
+		Player* findPlayer(Connection& cnn);
 		void removeLobbyConnection(Connection& cnn);
 		void broadcast(const std::string& msg);
 

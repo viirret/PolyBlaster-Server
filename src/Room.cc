@@ -1,14 +1,5 @@
 #include "Room.hh"
 
-#include <memory>
-
-// differentiate std::weak ptr from each other
-template <typename T, typename U>
-inline bool equals(const std::weak_ptr<T>& c1, const std::weak_ptr<U>& c2)
-{
-	return !c1.owner_before(c2) && !c2.owner_before(c1);
-}
-
 Room::Room(Websocket& server, std::string creator, int max, GameMode mode, bool friendlyFire, int arg1)
 	: server(server), creator(creator), max(max), mode(mode), friendlyFire(friendlyFire), arg1(arg1)
 {
@@ -140,7 +131,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			for(auto& c : connections)
 			{
 				// do not send information about yourself, to yourself
-				if(!equals(c.first, cnn))
+				if(!Util::equals(c.first, cnn))
 				{
 					info += c.second.getId();
 					info += ":";
@@ -194,10 +185,6 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		}	
 		
 	}
-
-	// TODO find out all commands and you client needs to send it itself
-	// and run them in their own loop, or same why not
-	//broadcast(msg);
 }
 
 void Room::broadcast(const std::string& msg)
@@ -209,7 +196,7 @@ void Room::broadcast(const std::string& msg)
 void Room::broadcast(const std::string& msg, const Connection& cnn)
 {
 	for(auto& c : connections)
-		if(!equals(c.first, cnn))
+		if(!Util::equals(c.first, cnn))
 			server.send(c.first, msg, websocketpp::frame::opcode::text);
 }
 
