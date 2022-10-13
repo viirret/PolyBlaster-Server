@@ -167,7 +167,6 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 		
-		// by default all messages are sent to every client,
 		// these messages are not to be sent to itself
 		case cmd::newplayer:
 		{
@@ -175,18 +174,30 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
-		// default server act
+		case cmd::snd:
+		{
+			broadcast(msg, cnn);
+			return;
+		}
+
+		// these messages are to be sent to every client
 		case cmd::util:
 		{
 			broadcast(msg);
 			return;
 		}
+
+		case cmd::chat:
+		{
+			broadcast(msg);
+			return;
+		}	
 		
 	}
 
 	// TODO find out all commands and you client needs to send it itself
 	// and run them in their own loop, or same why not
-	broadcast(msg);
+	//broadcast(msg);
 }
 
 void Room::broadcast(const std::string& msg)
