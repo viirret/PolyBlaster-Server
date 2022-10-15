@@ -156,18 +156,15 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 
 		server.set_close_handler([this](Connection cnn)
 		{
-			for(int i = 0; i < 100; i++)
-			{
-				std::cout << "XDDDDD" << std::endl;
-			}
-				
-
+			/*
 			Player* player = findPlayer(cnn);
 			Room* room = findRoom(cnn);
 
+			// TODO find out why this does not work, it should, right?
 			for(auto& c : room->getConnections())
 				if(!Util::equals(c.first, cnn))
 					server.send(c.first, "quit:" + player->getId(), websocketpp::frame::opcode::text);
+			*/
 
 			removeLobbyConnection(cnn);
 		});
