@@ -247,7 +247,7 @@ void Room::update()
 bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 {
 	int n = 0;
-	std::string arg, client, px, py, pz, rx, ry, rz;
+	std::string arg, client, px, py, pz, ry;
 
 	for(std::string::size_type i = 0; i < cmd.size(); i++)
 	{
@@ -262,9 +262,7 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 				case 2: px += cmd[i]; break;
 				case 3: py += cmd[i]; break;
 				case 4: pz += cmd[i]; break;
-				case 5: rx += cmd[i]; break;
-				case 6: ry += cmd[i]; break;
-				case 7: rz += cmd[i]; break;
+				case 5: ry += cmd[i]; break;
 				default: 
 				{
 					std::cout << "Message failed!" << std::endl;
@@ -277,7 +275,7 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 	std::string command;
 	std::stringstream ss;
 
-	ss << arg << ":" << client << ":" << px << ":" << py << ":" << pz << ":" << rx << ":" << ry << ":" << rz;
+	ss << arg << ":" << client << ":" << px << ":" << py << ":" << pz << ":" << ry;
 	ss >> command;
 
 	float x = strTo<float>::value(px);
