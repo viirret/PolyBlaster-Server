@@ -45,16 +45,19 @@ class Room
 		void broadcast(const std::string& cmd, const Connection& cnn);
 
 		ConnectionList connections;
-		Websocket& server;
 
+		// constructor variables:
+
+		Websocket& server;
 		std::string creator;
 
 		// default value for max players
 		int max = 10;
 		GameMode mode;
 
-		int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, arg1 = 0;
 		bool friendlyFire = false;
+
+		int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, arg1 = 0;
 
 		// storage for special commands
 		enum class cmd
