@@ -19,6 +19,15 @@ void Room::addConnection(Connection& cnn, const std::string& playerID)
 	auto conn = server.get_con_from_hdl(cnn);
 	conn->set_close_handler([this](Connection connection)
 	{
+		// get id from disconnected player
+		auto id = connections.find(connection)->second.getId();
+
+		// inform other players of disconnect
+		for(auto& c : getConnections())
+			if(!Util::equals(c.first, connection))
+				server.send(c.first, "quit:" + id, websocketpp::frame::opcode::text);
+		
+		// remove from lobby's connections
 		connections.erase(connections.find(connection));
 	});
 
