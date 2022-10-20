@@ -217,20 +217,16 @@ void Room::update()
 		{
 			if(scoreA >= arg1)
 			{
-				for(auto& c : connections)
-				{
-					server.send(c.first, "victory:1", websocketpp::frame::opcode::text);
-				}
+				broadcast("victory:1");
+
 				scoreA = 0;
 				scoreB = 0;
 			}
 
 			if(scoreB >= arg1)
 			{
-				for(auto& c : connections)
-				{
-					server.send(c.first, "victory:0", websocketpp::frame::opcode::text);
-				}
+				broadcast("victory:0");
+
 				scoreB = 0;
 				scoreA = 0;
 			}
