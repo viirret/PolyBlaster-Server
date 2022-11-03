@@ -65,6 +65,16 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 		case cmd::leaveroom:
 		{
+			// get id from player who is leaving
+			auto id = connections.find(cnn)->second.getId();
+
+			// inform other players of leaving the room
+			for(auto& c : getConnections())
+				if(!Util::equals(c.first, cnn))
+					server.send(c.first, "quit:" + id, websocketpp::frame::opcode::text);
+			
+			connections.erase(connections.find(cnn));
+
 			break;
 		}
 
@@ -197,6 +207,9 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			broadcast(msg);
 			return;
 		}	
+
+		// inform client of faulty command
+		server.send(cnn, "invalid", websocketpp::frame::opcode::text);
 		
 	}
 }
