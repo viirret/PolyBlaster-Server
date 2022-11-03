@@ -63,6 +63,11 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
+		case cmd::leaveroom:
+		{
+			break;
+		}
+
 		case cmd::dead:
 		{
 			// normal death

@@ -70,8 +70,9 @@ class Room
 			myteam,
 			getinfo,
 			roominfo,
+			leaveroom,
 			newplayer,
-			friendlyFire,
+			friendlyFire
 		};
 
 		// special commands
@@ -85,6 +86,7 @@ class Room
 			{"myteam", cmd::myteam},
 			{"getinfo", cmd::getinfo},
 			{"roominfo", cmd::roominfo},
+			{"leaveroom", cmd::leaveroom},
 			{"newplayer", cmd::newplayer},
 			{"friendlyFire", cmd::friendlyFire}
 		};
