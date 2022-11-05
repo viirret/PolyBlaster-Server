@@ -19,16 +19,15 @@ namespace Util
 
 // turn string into T type
 template<typename T>
-class strTo
+struct strTo
 {
-	public:
-		static T value(const std::string& str)
-		{
-			T num;
-			std::stringstream ss(str);
-			ss >> num;
-			return num;
-		}
+	static T value(const std::string& str)
+	{
+		T num;
+		std::stringstream ss(str);
+		ss >> num;
+		return num;
+	}
 };
 
 #endif

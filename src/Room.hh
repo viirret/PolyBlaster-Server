@@ -26,11 +26,16 @@ class Room
 {
 	public:
 		Room(Websocket& server, std::string creator, int max, GameMode mode, bool friendlyFire, int arg1);
-
-		void handleMessage(Connection& cnn, const std::string& cmd);
-		bool connectionHere(Connection& cnn);
-		void addConnection(Connection& cnn, const std::string& playerID);
 		void update();
+
+		// react to messages sent in a room
+		void handleMessage(Connection& cnn, const std::string& cmd);
+
+		// Is it connected here?
+		bool connectionHere(Connection& cnn) const;
+
+		// add new client to room
+		void addConnection(Connection& cnn, const std::string& playerID);
 
 		std::ostringstream getStatus();
 		ConnectionList getConnections();
@@ -39,22 +44,21 @@ class Room
 		bool updatePlayer(const std::string& cmd, const Connection& cnn);
 
 		// send message to every client
-		void broadcast(const std::string& cmd);
+		void broadcast(const std::string& cmd) const;
 
 		// send message to every client, except yourself
-		void broadcast(const std::string& cmd, const Connection& cnn);
+		void broadcast(const std::string& cmd, const Connection& cnn) const;
 
+		void leaveRoom(Connection& cnn);
+
+		// all the connections in a room
 		ConnectionList connections;
 
 		// constructor variables:
-
 		Websocket& server;
 		std::string creator;
-
-		// default value for max players
-		int max = 10;
+		int max;
 		GameMode mode;
-
 		bool friendlyFire = false;
 
 		int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, arg1 = 0;

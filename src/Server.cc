@@ -4,10 +4,25 @@
 #include <thread>
 #include <chrono>
 
-Server::Server(int argv, char** argc) : argv(argv), argc(argc)
+Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 {
+	// handle command line arguments as custom port number
+	if(argv[1])
+	{
+		std::stringstream ss;
+		ss << argv[1];
+		ss >> port;
+
+		std::cout << "Opening server with command line argument port: " << port << std::endl;
+	}
+	else
+	{
+		std::cout << "Opening server with default port: " << port << std::endl;
+	}
+
 	try 
 	{
+		// initialize websocket
 		server.set_access_channels(websocketpp::log::alevel::all);
 		server.clear_access_channels(websocketpp::log::alevel::frame_payload);
 		server.init_asio();
@@ -18,10 +33,11 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 			{
 				std::string cmd = msg->get_payload();
 
-				// this is the incoming message that gets resent
-				// optimize sending this back
+				// this is the incoming message
+				// right here more optimizations could be made if needed
 				std::cout << cmd << std::endl;
 
+				// messages that are send in a room are handled by room
 				Room* room = findRoom(cnn);
 				if(room)
 				{
@@ -29,6 +45,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 					return;
 				}
 				
+				// get the identifier from the command
 				std::string fw;
 				for(std::string::size_type i = 0; i < cmd.size(); i++)
 				{
@@ -66,6 +83,8 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						}
 						
 						removeLobbyConnection(cnn);
+
+						// here we add the connection
 						it->second.addConnection(cnn, playerID);
 
 						return;
@@ -129,6 +148,7 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 						auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode), boolFriendlyFire, arg1int));
 						room.first->second.update();
 
+						// change connection from lobby to room
 						removeLobbyConnection(cnn);
 						room.first->second.addConnection(cnn, playerID);
 
@@ -159,7 +179,6 @@ Server::Server(int argv, char** argc) : argv(argv), argc(argc)
 			removeLobbyConnection(cnn);
 		});
 
-		unsigned port = 8080;
 		server.set_reuse_addr(true);
 		server.listen(port);
 		server.start_accept();

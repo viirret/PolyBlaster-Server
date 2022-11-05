@@ -18,7 +18,7 @@ typedef std::set<Connection, std::owner_less<Connection>> LobbyConnections;
 class Server
 {
 	public:
-		Server(int argv, char** argc);
+		Server(int argc, char** argw);
 
 	private:
 		Room* findRoom(Connection& cnn);
@@ -29,8 +29,10 @@ class Server
 		Websocket server;
 		LobbyConnections connections;
 
-		int argv;
-		char** argc;
+		int argc;
+		char** argv;
+
+		unsigned port = 8080;
 
 		std::unordered_map<std::string, Room> rooms;
 		int allConnections = 0;

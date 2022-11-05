@@ -1,7 +1,7 @@
 #include "Server.hh"
 
-int main(int argv, char** argc)
+int main(int argc, char** argv)
 {
-	Server s(argv, argc);
+	Server(argc, argv);
 	return 0;
 }

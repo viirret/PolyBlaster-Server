@@ -5,7 +5,7 @@ Room::Room(Websocket& server, std::string creator, int max, GameMode mode, bool 
 {
 }
 
-bool Room::connectionHere(Connection& cnn)
+bool Room::connectionHere(Connection& cnn) const
 {
 	return connections.find(cnn) != connections.end();
 }
@@ -19,20 +19,25 @@ void Room::addConnection(Connection& cnn, const std::string& playerID)
 	auto conn = server.get_con_from_hdl(cnn);
 	conn->set_close_handler([this](Connection connection)
 	{
-		// get id from disconnected player
-		auto id = connections.find(connection)->second.getId();
-
-		// inform other players of disconnect
-		for(auto& c : getConnections())
-			if(!Util::equals(c.first, connection))
-				server.send(c.first, "quit:" + id, websocketpp::frame::opcode::text);
-		
-		// remove from lobby's connections
-		connections.erase(connections.find(connection));
+		leaveRoom(connection);
 	});
 
-	// inform the client that it joined the game
+	// inform the client of joining the game
 	server.send(cnn, "joined", websocketpp::frame::opcode::text);
+}
+
+void Room::leaveRoom(Connection& cnn)
+{
+	// get id from player who is leaving
+	auto id = connections.find(cnn)->second.getId();
+
+	// inform other players of leaving the room
+	for(auto& c : getConnections())
+		if(!Util::equals(c.first, cnn))
+			server.send(c.first, "quit:" + id, websocketpp::frame::opcode::text);
+	
+	// remove from room's connections
+	connections.erase(connections.find(cnn));
 }
 
 std::ostringstream Room::getStatus()
@@ -65,16 +70,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 		case cmd::leaveroom:
 		{
-			// get id from player who is leaving
-			auto id = connections.find(cnn)->second.getId();
-
-			// inform other players of leaving the room
-			for(auto& c : getConnections())
-				if(!Util::equals(c.first, cnn))
-					server.send(c.first, "quit:" + id, websocketpp::frame::opcode::text);
-			
-			connections.erase(connections.find(cnn));
-
+			leaveRoom(cnn);
 			break;
 		}
 
@@ -103,7 +99,6 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 			if(mode == GameMode::team_deathmatch)
 			{
-				// string to int
 				int intteam = strTo<int>::value(team);
 
 				// update scores
@@ -183,44 +178,31 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		}
 		
 		// these messages are not to be sent to itself
-		case cmd::newplayer:
-		{
-			broadcast(msg, cnn);
-			return;
-		}
-
-		case cmd::snd:
+		case cmd::newplayer: case cmd::snd:
 		{
 			broadcast(msg, cnn);
 			return;
 		}
 
 		// these messages are to be sent to every client
-		case cmd::util:
+		case cmd::util: case cmd::chat:
 		{
 			broadcast(msg);
 			return;
 		}
 
-		case cmd::chat:
-		{
-			broadcast(msg);
-			return;
-		}	
-
 		// inform client of faulty command
 		server.send(cnn, "invalid", websocketpp::frame::opcode::text);
-		
 	}
 }
 
-void Room::broadcast(const std::string& msg)
+void Room::broadcast(const std::string& msg) const
 {
 	for(auto& c : connections)
 		server.send(c.first, msg, websocketpp::frame::opcode::text);
 }
 
-void Room::broadcast(const std::string& msg, const Connection& cnn)
+void Room::broadcast(const std::string& msg, const Connection& cnn) const
 {
 	for(auto& c : connections)
 		if(!Util::equals(c.first, cnn))
@@ -309,7 +291,6 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 	for(auto& c : connections)
 		if(c.second.getId() == client)
 			c.second.changePos(x, y, z);
-
 
 	// here we can do some checks for the command, if needed in the future
 
