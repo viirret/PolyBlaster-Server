@@ -203,10 +203,9 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 
 }
 
-void Server::removeLobbyConnection(Connection& cnn)
+void Server::removeLobbyConnection(Connection cnn)
 {
-	if(connections.find(cnn) != connections.end())
-		connections.erase(cnn);
+	connections.erase(connections.find(cnn));
 }
 
 void Server::broadcast(const std::string& msg)

@@ -23,7 +23,7 @@ class Server
 	private:
 		Room* findRoom(Connection& cnn);
 		Player* findPlayer(Connection& cnn);
-		void removeLobbyConnection(Connection& cnn);
+		void removeLobbyConnection(Connection cnn);
 		void broadcast(const std::string& msg);
 
 		Websocket server;
