@@ -16,12 +16,6 @@ void Room::addConnection(Connection& cnn, const std::string& playerID)
 {
 	connections.emplace(cnn, Player(playerID));
 
-	auto conn = server.get_con_from_hdl(cnn);
-	conn->set_close_handler([this](Connection connection)
-	{
-		leaveRoom(connection);
-	});
-
 	// inform the client of joining the game
 	server.send(cnn, "joined", websocketpp::frame::opcode::text);
 }

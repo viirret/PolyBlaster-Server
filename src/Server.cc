@@ -38,9 +38,9 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 		if(room)
 		{
 			room->handleMessage(cnn, cmd);
-
+			
+			// if player left to lobby added connection again	
 			Connection* c = room->leftRoom();
-
 			if(c)
 				connections.insert(*c);
 
@@ -84,9 +84,8 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 					return;
 				}
 				
+				// change the connection from lobby to Room
 				removeLobbyConnection(cnn);
-
-				// here we add the connection
 				it->second.addConnection(cnn, playerID);
 
 				return;
@@ -139,15 +138,11 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 					return;
 				}
 
-				// convert string arguments to int
-				int gameMode = strTo<int>::value(mode);
-				int maxint = strTo<int>::value(max);
-				int intFriendlyFire = strTo<int>::value(friendlyFire);
-				int arg1int = strTo<int>::value(arg1);
+				// create room
+				auto room = rooms.emplace(id, Room(server, playerID, strTo<int>::value(max), static_cast<GameMode>(strTo<int>::value(max)),
+				strTo<int>::value(friendlyFire) == 1, strTo<int>::value(arg1)));
 
-				bool boolFriendlyFire = intFriendlyFire == 1;
-
-				auto room = rooms.emplace(id, Room(server, playerID, maxint, static_cast<GameMode>(gameMode), boolFriendlyFire, arg1int));
+				// start updating room
 				room.first->second.update();
 
 				// change connection from lobby to room
@@ -172,7 +167,10 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 
 	server.set_close_handler([this](Connection cnn)
 	{
-		removeLobbyConnection(cnn);
+		Room* room = findRoom(cnn);
+
+		// remove from Rooms or Servers connections
+		room ? room->leaveRoom(cnn) : removeLobbyConnection(cnn);
 	});
 
 	server.set_reuse_addr(true);

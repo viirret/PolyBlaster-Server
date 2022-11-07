@@ -41,6 +41,7 @@ class Room
 
 		std::ostringstream getStatus();
 		ConnectionList getConnections();
+		void leaveRoom(Connection& cnn);
 
 	private:
 		Connection* leftConnection = nullptr;
@@ -52,8 +53,6 @@ class Room
 
 		// send message to every client, except yourself
 		void broadcast(const std::string& cmd, const Connection& cnn) const;
-
-		void leaveRoom(Connection& cnn);
 
 		// all the connections in a room
 		ConnectionList connections;
