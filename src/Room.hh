@@ -64,7 +64,11 @@ class Room
 		GameMode mode;
 		bool friendlyFire = false;
 
-		int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, arg1 = 0;
+		//int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, arg1 = 0;
+
+		int scoreRed = 0, scoreBlue = 0, oldScoreRed = 0, oldScoreBlue = 0, arg1 = 0;
+
+		// 0 for red, 1 for blue, -1 for undefined
 
 		// storage for special commands
 		enum class cmd

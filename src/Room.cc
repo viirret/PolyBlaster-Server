@@ -105,9 +105,9 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 				// update scores
 				if(intteam == 0)
-					scoreA++;
+					scoreRed++;
 				else if(intteam == 1)
-					scoreB++;
+					scoreBlue++;
 				
 				// send message back to server about respawning
 				server.send(cnn, "respawn", websocketpp::frame::opcode::text);
@@ -217,33 +217,30 @@ void Room::update()
 	{
 		for(;;)
 		{
-			if(scoreA >= arg1)
-			{
-				broadcast("victory:1");
-
-				scoreA = 0;
-				scoreB = 0;
-			}
-
-			if(scoreB >= arg1)
+			if(scoreRed >= arg1)
 			{
 				broadcast("victory:0");
 
-				scoreB = 0;
-				scoreA = 0;
+				scoreRed = 0;
+				scoreBlue = 0;
 			}
 
-			if(oldScoreA != scoreA || oldScoreB != scoreB)
+			if(scoreBlue >= arg1)
 			{
-				std::string updateScore = "updatescores:" + std::to_string(scoreA) + ":" + std::to_string(scoreB);
+				broadcast("victory:1");
 
-				for(auto& c : connections)
-				{
-					server.send(c.first, updateScore, websocketpp::frame::opcode::text);
-				}
+				scoreRed = 0;
+				scoreBlue = 0;
+			}
 
-				oldScoreA = scoreA;
-				oldScoreB = scoreB;
+			if(oldScoreRed != scoreRed || oldScoreBlue != scoreBlue)
+			{
+				std::string updateScore = "updatescores:" + std::to_string(scoreRed) + ":" + std::to_string(scoreBlue);
+
+				broadcast(updateScore);
+
+				oldScoreRed = scoreRed;
+				oldScoreBlue = scoreBlue;
 			}
 		}
 	});
