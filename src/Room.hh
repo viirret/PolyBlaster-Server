@@ -37,10 +37,14 @@ class Room
 		// add new client to room
 		void addConnection(Connection& cnn, const std::string& playerID);
 
+		Connection* leftRoom();
+
 		std::ostringstream getStatus();
 		ConnectionList getConnections();
 
 	private:
+		Connection* leftConnection = nullptr;
+
 		bool updatePlayer(const std::string& cmd, const Connection& cnn);
 
 		// send message to every client

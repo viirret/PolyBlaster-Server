@@ -26,6 +26,13 @@ void Room::addConnection(Connection& cnn, const std::string& playerID)
 	server.send(cnn, "joined", websocketpp::frame::opcode::text);
 }
 
+Connection* Room::leftRoom()
+{
+	Connection* c = leftConnection;
+	leftConnection = nullptr;
+	return c;
+}
+
 void Room::leaveRoom(Connection& cnn)
 {
 	// get id from player who is leaving
@@ -70,6 +77,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 		case cmd::leaveroom:
 		{
+			leftConnection = &cnn;
 			leaveRoom(cnn);
 			break;
 		}

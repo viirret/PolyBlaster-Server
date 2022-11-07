@@ -38,6 +38,12 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 		if(room)
 		{
 			room->handleMessage(cnn, cmd);
+
+			Connection* c = room->leftRoom();
+
+			if(c)
+				connections.insert(*c);
+
 			return;
 		}
 		
