@@ -139,7 +139,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 				}
 
 				// create room
-				auto room = rooms.emplace(id, Room(server, playerID, strTo<int>::value(max), static_cast<GameMode>(strTo<int>::value(max)),
+				auto room = rooms.emplace(id, Room(server, playerID, strTo<int>::value(max), static_cast<GameMode>(strTo<int>::value(mode)),
 				strTo<int>::value(friendlyFire) == 1, strTo<int>::value(arg1)));
 
 				// start updating room
