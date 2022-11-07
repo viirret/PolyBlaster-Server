@@ -37,11 +37,15 @@ class Room
 		// add new client to room
 		void addConnection(Connection& cnn, const std::string& playerID);
 
+		// connection that has left the room
 		Connection* leftRoom();
 
+		// make connection leave room
+		void leaveRoom(Connection& cnn);
+
+		// get data from Room
 		std::ostringstream getStatus();
 		ConnectionList getConnections();
-		void leaveRoom(Connection& cnn);
 
 	private:
 		Connection* leftConnection = nullptr;
@@ -64,13 +68,10 @@ class Room
 		GameMode mode;
 		bool friendlyFire = false;
 
-		//int scoreA = 0, scoreB = 0, oldScoreA = 0, oldScoreB = 0, arg1 = 0;
-
+		// 0 means red, 1 means blue; clientside numbering
 		int scoreRed = 0, scoreBlue = 0, oldScoreRed = 0, oldScoreBlue = 0, arg1 = 0;
 
-		// 0 for red, 1 for blue, -1 for undefined
-
-		// storage for special commands
+		// commands for a room
 		enum class cmd
 		{
 			up,
@@ -86,7 +87,6 @@ class Room
 			friendlyFire
 		};
 
-		// special commands
 		std::map<std::string, cmd> commands = 
 		{
 			{"up", cmd::up},
