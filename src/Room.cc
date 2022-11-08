@@ -175,6 +175,18 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			":" + std::to_string(arg1) + ":" + std::to_string(friendlyFire), websocketpp::frame::opcode::text);
 			return;
 		}
+	
+		// get identifiers from all players in a room		
+		case cmd::getplayers:
+		{
+			std::string info = "getplayers:";
+
+			for(auto& c : connections)
+				info += c.second.getId() + ":";
+			
+			broadcast(info);
+			return;
+		}
 		
 		// these messages are not to be sent to itself
 		case cmd::newplayer: case cmd::snd:
@@ -250,7 +262,7 @@ void Room::update()
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 			timeSinceCreation++;
 
-			if(timeSinceCreation < (size_t)warmup)
+			if(timeSinceCreation <= (size_t)warmup)
 			{
 				// send message about warmup time
 				// TODO add warmup to as parameter when creating so can get rid off "warmup" here

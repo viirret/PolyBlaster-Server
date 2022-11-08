@@ -70,7 +70,7 @@ class Room
 
 		// time as seconds
 		// TODO add as constructor variable
-		int warmup = 60;
+		int warmup = 30;
 		
 		bool isWarmup = true;
 		size_t timeSinceCreation = 0;
@@ -91,6 +91,7 @@ class Room
 			roominfo,
 			leaveroom,
 			newplayer,
+			getplayers
 		};
 
 		std::map<std::string, cmd> commands = 
@@ -105,6 +106,7 @@ class Room
 			{"roominfo", cmd::roominfo},
 			{"leaveroom", cmd::leaveroom},
 			{"newplayer", cmd::newplayer},
+			{"getplayers", cmd::getplayers}
 		};
 };
 
