@@ -68,6 +68,13 @@ class Room
 		GameMode mode;
 		bool friendlyFire = false;
 
+		// time as seconds
+		// TODO add as constructor variable
+		int warmup = 60;
+		
+		bool isWarmup = true;
+		size_t timeSinceCreation = 0;
+
 		// 0 means red, 1 means blue; clientside numbering
 		int scoreRed = 0, scoreBlue = 0, oldScoreRed = 0, oldScoreBlue = 0, arg1 = 0;
 

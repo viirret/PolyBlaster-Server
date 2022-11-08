@@ -32,12 +32,15 @@ class Server
 		int argc;
 		char** argv;
 
+		// default value for port
 		unsigned port = 8080;
 
 		std::unordered_map<std::string, Room> rooms;
+		
+		// connections from every room and lobby
 		int allConnections = 0;
 
-		// commands straight to the server
+		// server commands
 		enum class cmd
 		{
 			join,

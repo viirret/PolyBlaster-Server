@@ -217,6 +217,7 @@ void Room::update()
 	{
 		for(;;)
 		{
+			// update scores	
 			if(scoreRed >= arg1)
 			{
 				broadcast("victory:0");
@@ -245,7 +246,24 @@ void Room::update()
 		}
 	});
 
+	std::thread updateWarmup([this]()
+	{
+		for(;;)
+		{
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			timeSinceCreation++;
+
+			if(timeSinceCreation < (size_t)warmup)
+			{
+				// send message about warmup time
+				// TODO add warmup to as parameter when creating so can get rid off "warmup" here
+				broadcast("warmup:" + std::to_string(timeSinceCreation) + ":" + std::to_string(warmup));
+			}
+		}
+	});
+
 	updateRoom.detach();
+	updateWarmup.detach();
 }
 
 bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
