@@ -91,7 +91,6 @@ class Room
 			roominfo,
 			leaveroom,
 			newplayer,
-			friendlyFire
 		};
 
 		std::map<std::string, cmd> commands = 
@@ -106,7 +105,6 @@ class Room
 			{"roominfo", cmd::roominfo},
 			{"leaveroom", cmd::leaveroom},
 			{"newplayer", cmd::newplayer},
-			{"friendlyFire", cmd::friendlyFire}
 		};
 };
 

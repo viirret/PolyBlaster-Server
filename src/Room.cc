@@ -145,6 +145,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
+		// get information about every player in room
 		case cmd::getinfo:
 		{
 			std::string info = "getinfo:";
@@ -167,15 +168,11 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
-		case cmd::friendlyFire:
-		{
-			server.send(cnn, "friendlyFire:" + std::to_string(friendlyFire), websocketpp::frame::opcode::text);
-			return;
-		}
+		// get all information about the room
 		case cmd::roominfo:
 		{
-			server.send(cnn, "roominfo:" + creator + ":" + std::to_string(max) + ":" 
-			+ std::to_string(connections.size()) + ":" + std::to_string(arg1), websocketpp::frame::opcode::text);
+			server.send(cnn, "roominfo:" + creator + ":" + std::to_string(max) + ":" + std::to_string(connections.size()) + 
+			":" + std::to_string(arg1) + ":" + std::to_string(friendlyFire), websocketpp::frame::opcode::text);
 			return;
 		}
 		
