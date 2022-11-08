@@ -85,13 +85,14 @@ class Room
 			snd,
 			dead,
 			util,
+			item,
 			chat,
 			myteam,
 			getinfo,
 			roominfo,
 			leaveroom,
 			newplayer,
-			getplayers
+			getplayers,
 		};
 
 		std::map<std::string, cmd> commands = 
@@ -99,6 +100,7 @@ class Room
 			{"up", cmd::up},
 			{"snd", cmd::snd},
 			{"dead", cmd::dead},
+			{"item", cmd::item},
 			{"util", cmd::util},
 			{"chat", cmd::chat},
 			{"myteam", cmd::myteam},

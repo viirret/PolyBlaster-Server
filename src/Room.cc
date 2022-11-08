@@ -175,6 +175,26 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			":" + std::to_string(arg1) + ":" + std::to_string(friendlyFire), websocketpp::frame::opcode::text);
 			return;
 		}
+
+		case cmd::item:
+		{
+			for(auto& c : connections)
+			{
+				
+			}
+			
+			//std::string
+			
+			std::string delimiter = ":";
+			std::string team = cmd.substr()
+			
+
+			int scoreRed = 0, scoreBlue = 0, oldScoreRed = 0, oldScoreBlue = 0, arg1 = 0;
+
+			
+
+			broadcast("")
+		}
 	
 		// get identifiers from all players in a room		
 		case cmd::getplayers:
