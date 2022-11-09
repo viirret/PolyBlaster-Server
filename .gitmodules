@@ -1,0 +1,6 @@
+[submodule "websocketpp"]
+	path = websocketpp
+	url = https://github.com/zaphoyd/websocketpp.git
+[submodule "boost"]
+	path = boost
+	url = https://github.com/boostorg/boost.git
