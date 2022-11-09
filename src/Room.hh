@@ -83,9 +83,10 @@ class Room
 		{
 			up,
 			snd,
+			map,
 			dead,
-			util,
 			item,
+			util,
 			chat,
 			myteam,
 			getinfo,
@@ -99,6 +100,7 @@ class Room
 		{
 			{"up", cmd::up},
 			{"snd", cmd::snd},
+			{"map", cmd::map},
 			{"dead", cmd::dead},
 			{"item", cmd::item},
 			{"util", cmd::util},
