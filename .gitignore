@@ -1,0 +1,4 @@
+*.ccls-cache/
+
+build/
+data.txt
