@@ -25,7 +25,7 @@ enum class GameMode
 class Room
 {
 	public:
-		Room(Websocket& server, std::string creator, int max, GameMode mode, bool friendlyFire, int arg1);
+		Room(Websocket& server, std::string creator, int max, GameMode mode, bool friendlyFire, int scorethreshold, int warmup, int itemMap);
 		void update();
 
 		// react to messages sent in a room
@@ -66,17 +66,16 @@ class Room
 		std::string creator;
 		int max;
 		GameMode mode;
-		bool friendlyFire = false;
-
-		// time as seconds
-		// TODO add as constructor variable
-		int warmup = 30;
+		bool friendlyFire;
+		int scorethreshold;
+		int warmup;
+		int itemMap;
 		
 		bool isWarmup = true;
 		size_t timeSinceCreation = 0;
 
 		// 0 means red, 1 means blue; clientside numbering
-		int scoreRed = 0, scoreBlue = 0, oldScoreRed = 0, oldScoreBlue = 0, arg1 = 0;
+		int scoreRed = 0, scoreBlue = 0, oldScoreRed = 0, oldScoreBlue = 0;
 
 		// commands for a room
 		enum class cmd

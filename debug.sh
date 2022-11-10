@@ -10,5 +10,7 @@ cmake ..
 make
 cd ..
 
+rm data.txt 2>/dev/null
+
 build/x 2>&1 | tee data.txt
 

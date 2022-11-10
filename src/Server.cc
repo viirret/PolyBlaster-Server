@@ -19,145 +19,167 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 		std::cout << "Opening server with default port: " << port << std::endl;
 	}
 
-	// initialize websocket
-	server.set_access_channels(websocketpp::log::alevel::all);
-	server.clear_access_channels(websocketpp::log::alevel::frame_payload);
-	server.init_asio();
+	try
+	{
+		// initialize websocket
+		server.set_access_channels(websocketpp::log::alevel::all);
+		server.clear_access_channels(websocketpp::log::alevel::frame_payload);
+		server.init_asio();
+	}
+	catch(const std::exception& e)
+	{
+		std::cout << "Couldn't start connection because: " << e.what() << std::endl;
+	}
 
 	server.set_message_handler([this](Connection cnn, Message msg)
 	{
-		std::string cmd = msg->get_payload();
-
-		// this is the incoming message
-		// right here more optimizations could be made if needed
-		std::cout << cmd << std::endl;
-
-		// messages that are send in a room are handled by room
-		Room* room = findRoom(cnn);
-		if(room)
+		try
 		{
-			room->handleMessage(cnn, cmd);
+			std::string cmd = msg->get_payload();
+
+			// this is the incoming message
+			//std::cout << cmd << std::endl;
+			// right here more optimizations could be made if needed
+
+			// messages that are send in a room are handled by room
+			Room* room = findRoom(cnn);
+			if(room)
+			{
+				room->handleMessage(cnn, cmd);
+				
+				// if player left to lobby added connection again	
+				Connection* c = room->leftRoom();
+				if(c)
+					connections.insert(*c);
+
+				return;
+			}
 			
-			// if player left to lobby added connection again	
-			Connection* c = room->leftRoom();
-			if(c)
-				connections.insert(*c);
-
-			return;
-		}
-		
-		// get the identifier from the command
-		std::string fw;
-		for(std::string::size_type i = 0; i < cmd.size(); i++)
-		{
-			if(cmd[i] == ':') break;
-			else fw += cmd[i];
-		}
-
-		switch(commands[fw])
-		{
-			case cmd::join:
+			// get the identifier from the command
+			std::string fw;
+			for(std::string::size_type i = 0; i < cmd.size(); i++)
 			{
-				int n = 0;
-				std::string roomName, playerID;
-				for(std::string::size_type i = 0; i < cmd.size(); i++)
+				if(cmd[i] == ':') break;
+				else fw += cmd[i];
+			}
+
+			switch(commands[fw])
+			{
+				case cmd::join:
 				{
-					if(cmd[i] == ':')
-						n++;
-					else
+					int n = 0;
+					std::string roomName, playerID;
+					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
-						switch(n)
+						if(cmd[i] == ':')
+							n++;
+						else
 						{
-							case 0: break;
-							case 1: roomName += cmd[i]; break;
-							case 2: playerID += cmd[i]; break;
+							switch(n)
+							{
+								case 0: break;
+								case 1: roomName += cmd[i]; break;
+								case 2: playerID += cmd[i]; break;
+							}
 						}
 					}
-				}
-				
-				auto it = rooms.find(roomName);
+					
+					auto it = rooms.find(roomName);
 
-				if(it == rooms.end())
-				{
-					server.send(cnn, "invalid-room", websocketpp::frame::opcode::text);
+					if(it == rooms.end())
+					{
+						server.send(cnn, "invalid-room", websocketpp::frame::opcode::text);
+						return;
+					}
+					
+					// change the connection from lobby to Room
+					removeLobbyConnection(cnn);
+					it->second.addConnection(cnn, playerID);
+
 					return;
 				}
-				
-				// change the connection from lobby to Room
-				removeLobbyConnection(cnn);
-				it->second.addConnection(cnn, playerID);
 
-				return;
-			}
-
-			case cmd::list:
-			{
-				std::ostringstream roomData;
-				roomData << "list";
-
-				for(auto& room : rooms)
-					roomData << ":" << room.first << ":" << room.second.getStatus().str() << ";";
-
-				server.send(cnn, roomData.str(), websocketpp::frame::opcode::text);
-				return;
-			}
-
-			case cmd::create:
-			{
-				int n = 0;
-				std::string id, playerID, max, mode, arg1, friendlyFire;
-				for(std::string::size_type i = 0; i < cmd.size(); i++)
+				case cmd::list:
 				{
-					if(cmd[i] == ':')
-						n++;
-					else
+					std::ostringstream roomData;
+					roomData << "list";
+ 
+					for(auto& room : rooms)
+						roomData << ":" << room.first << ":" << room.second.getStatus().str() << ";";
+
+					server.send(cnn, roomData.str(), websocketpp::frame::opcode::text);
+					return;
+				}
+
+				case cmd::create:
+				{
+					int n = 0;
+					std::string id, playerID, max, mode, friendlyFire, scorethreshold, warmup, itemMap;
+					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
-						switch(n)
+						if(cmd[i] == ':')
+							n++;
+						else
 						{
-							case 0: break;
-							case 1: id += cmd[i]; break;
-							case 2: playerID += cmd[i]; break;
-							case 3: max += cmd[i]; break;
-							case 4: mode += cmd[i]; break;
-							case 5: friendlyFire += cmd[i]; break;
-							case 6: arg1 += cmd[i]; break;
-							default: std::cout << "Something went wrong!" << std::endl;
+							switch(n)
+							{
+								case 0: break;
+								case 1: id += cmd[i]; break;
+								case 2: playerID += cmd[i]; break;
+								case 3: max += cmd[i]; break;
+								case 4: mode += cmd[i]; break;
+								case 5: friendlyFire += cmd[i]; break;
+								case 6: scorethreshold += cmd[i]; break;
+								case 7: warmup += cmd[i]; break;
+								case 8: itemMap += cmd[i]; break;
+								default: std::cout << "Something went wrong!" << std::endl;
+							}
 						}
 					}
-				}
 
-				if(id.empty())
-				{
+					if(id.empty())
+					{
+						return;
+					}
+
+					if(rooms.find(id) != rooms.end())
+					{
+						server.send(cnn, "room-exists", websocketpp::frame::opcode::text);
+						return;
+					}
+
+					// create room
+					auto room = rooms.emplace(id, Room(server, playerID, strTo<int>::value(max), static_cast<GameMode>(strTo<int>::value(mode)),
+					strTo<int>::value(friendlyFire) == 1, strTo<int>::value(scorethreshold), strTo<int>::value(warmup), strTo<int>::value(itemMap)));
+
+					// start updating room
+					room.first->second.update();
+
+					// change connection from lobby to room
+					removeLobbyConnection(cnn);
+					room.first->second.addConnection(cnn, playerID);
+
+					// info other clients of new room
+					broadcast("newroom");
+
 					return;
 				}
-
-				if(rooms.find(id) != rooms.end())
-				{
-					server.send(cnn, "room-exists", websocketpp::frame::opcode::text);
-					return;
-				}
-
-				// create room
-				auto room = rooms.emplace(id, Room(server, playerID, strTo<int>::value(max), static_cast<GameMode>(strTo<int>::value(mode)),
-				strTo<int>::value(friendlyFire) == 1, strTo<int>::value(arg1)));
-
-				// start updating room
-				room.first->second.update();
-
-				// change connection from lobby to room
-				removeLobbyConnection(cnn);
-				room.first->second.addConnection(cnn, playerID);
-
-				// info other clients of new room
-				broadcast("newroom");
-
-				return;
 			}
+			
+			// inform client of faulty command
+			server.send(cnn, "invalid", websocketpp::frame::opcode::text);
+		}	
+
+		catch(const std::exception& e)
+		{
+			std::cout << "ERROR:" << e.what() << std::endl;
 		}
-		
-		// inform client of faulty command
-		server.send(cnn, "invalid", websocketpp::frame::opcode::text);
+		catch(...)
+		{
+			std::cout << "ERROR" << std::endl;
+		}
 	});
+
 
 	server.set_open_handler([this](Connection cnn)
 	{

@@ -1,7 +1,7 @@
 #include "Room.hh"
 
-Room::Room(Websocket& server, std::string creator, int max, GameMode mode, bool friendlyFire, int arg1)
-	: server(server), creator(creator), max(max), mode(mode), friendlyFire(friendlyFire), arg1(arg1)
+Room::Room(Websocket& server, std::string creator, int max, GameMode mode, bool friendlyFire, int scorethreshold, int warmup, int itemMap)
+	: server(server), creator(creator), max(max), mode(mode), friendlyFire(friendlyFire), scorethreshold(scorethreshold), warmup(warmup), itemMap(itemMap)
 {
 }
 
@@ -172,7 +172,8 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		case cmd::roominfo:
 		{
 			server.send(cnn, "roominfo:" + creator + ":" + std::to_string(max) + ":" + std::to_string(connections.size()) + 
-			":" + std::to_string(arg1) + ":" + std::to_string(friendlyFire), websocketpp::frame::opcode::text);
+			":" + std::to_string(friendlyFire) + ":" + std::to_string(scorethreshold)+ ":" + std::to_string(warmup) + ":" + std::to_string(itemMap), 
+			websocketpp::frame::opcode::text);
 			return;
 		}
 
@@ -239,7 +240,7 @@ void Room::update()
 		for(;;)
 		{
 			// update scores	
-			if(scoreRed >= arg1)
+			if(scoreRed >= scorethreshold)
 			{
 				broadcast("victory:0");
 
@@ -247,7 +248,7 @@ void Room::update()
 				scoreBlue = 0;
 			}
 
-			if(scoreBlue >= arg1)
+			if(scoreBlue >= scorethreshold)
 			{
 				broadcast("victory:1");
 
