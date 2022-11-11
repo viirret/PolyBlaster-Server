@@ -168,6 +168,13 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
+		case cmd::map:
+		{
+			broadcast(msg);
+			return;
+		}
+
+
 		// get all information about the room
 		case cmd::roominfo:
 		{
@@ -177,18 +184,6 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
-		case cmd::map:
-		{
-			broadcast(msg);
-			return;
-		}
-
-		case cmd::item:
-		{
-			broadcast(msg);
-			return;
-		}
-	
 		// get identifiers from all players in a room		
 		case cmd::getplayers:
 		{
@@ -265,6 +260,9 @@ void Room::update()
 				oldScoreRed = scoreRed;
 				oldScoreBlue = scoreBlue;
 			}
+
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+
 		}
 	});
 
@@ -278,7 +276,6 @@ void Room::update()
 			if(timeSinceCreation <= (size_t)warmup)
 			{
 				// send message about warmup time
-				// TODO add warmup to as parameter when creating so can get rid off "warmup" here
 				broadcast("warmup:" + std::to_string(timeSinceCreation) + ":" + std::to_string(warmup));
 			}
 		}

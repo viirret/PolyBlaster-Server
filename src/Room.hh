@@ -3,6 +3,7 @@
 
 #include "Util.hh"
 #include "Player.hh"
+#include "GameItem.hh"
 
 #include "websocketpp/server.hpp"
 #include "websocketpp/config/asio_no_tls.hpp"
@@ -58,6 +59,9 @@ class Room
 		// send message to every client, except yourself
 		void broadcast(const std::string& cmd, const Connection& cnn) const;
 
+		// add information about the map to the server
+		bool createMap(const std::string& cmd);
+
 		// all the connections in a room
 		ConnectionList connections;
 
@@ -77,6 +81,9 @@ class Room
 		// 0 means red, 1 means blue; clientside numbering
 		int scoreRed = 0, scoreBlue = 0, oldScoreRed = 0, oldScoreBlue = 0;
 
+		// serverside items in a Room
+		std::vector<GameItem> items;
+
 		// commands for a room
 		enum class cmd
 		{
@@ -84,7 +91,6 @@ class Room
 			snd,
 			map,
 			dead,
-			item,
 			util,
 			chat,
 			myteam,
@@ -101,7 +107,6 @@ class Room
 			{"snd", cmd::snd},
 			{"map", cmd::map},
 			{"dead", cmd::dead},
-			{"item", cmd::item},
 			{"util", cmd::util},
 			{"chat", cmd::chat},
 			{"myteam", cmd::myteam},

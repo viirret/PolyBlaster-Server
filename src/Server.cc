@@ -162,6 +162,9 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 					// info other clients of new room
 					broadcast("newroom");
 
+					// get information from client about newly created room
+					server.send(cnn, "mapinfo:" + itemMap, websocketpp::frame::opcode::text);
+
 					return;
 				}
 			}
@@ -219,6 +222,8 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 				broadcast(msg);
 				allConnections = amount;
 			}
+
+			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
 	});
 
