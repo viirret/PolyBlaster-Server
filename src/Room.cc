@@ -18,6 +18,9 @@ void Room::addConnection(Connection& cnn, const std::string& playerID)
 
 	// inform the client of joining the game
 	server.send(cnn, "joined", websocketpp::frame::opcode::text);
+
+	// get information about the map in the Room
+	server.send(cnn, "map:" + std::to_string(itemMap), websocketpp::frame::opcode::text);
 }
 
 Connection* Room::leftRoom()
@@ -74,6 +77,57 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			leftConnection = &cnn;
 			leaveRoom(cnn);
 			break;
+		}
+
+		case cmd::item:
+		{
+			int n = 0;
+			std::string id, x, y, z, tag, client, team;
+
+			// parse message
+			for(std::string::size_type i = 0; i < msg.size(); i++)
+			{
+				if(msg[i] == ':')
+					n++;
+				else if(msg[i] == ';')
+					continue;
+				else
+				{
+					switch(n)
+					{
+						case 1: id += msg[i]; break;
+						case 2: x += msg[i]; break;
+						case 3: y += msg[i]; break;
+						case 4: z += msg[i]; break;
+						case 5: tag += msg[i]; break;
+						case 6: client += msg[i]; break;
+						case 7: team += msg[i]; break;
+					}
+				}
+			}
+			
+			// printing message fields
+			std::cout << "ID " << id << " x " << x << " y " << y << " z " << z << " tag " << tag << " client " << client << " team " << team << std::endl;
+
+			// do stuff based in ServerItem.tag (add score, add health, etc)
+			
+			if(tag == "pointItem")
+			{
+				if(team == "0")
+				{
+					scoreRed++;
+				}
+				else if(team == "1")
+				{
+					scoreBlue++;
+				}
+			}
+
+			// destroy item from server
+
+			// destroy item in clients
+			
+			return;
 		}
 
 		case cmd::dead:
@@ -170,7 +224,10 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 		case cmd::map:
 		{
-			broadcast(msg);
+			if(!createMap(msg, cnn))
+			{
+				std::cout << "Couldn't pass map commands!" << std::endl;
+			}
 			return;
 		}
 
@@ -285,6 +342,72 @@ void Room::update()
 	updateWarmup.detach();
 }
 
+bool Room::createMap(const std::string& cmd, const Connection& cnn)
+{
+	std::cout << "MAP COMMAND" << std::endl;
+	std::cout << cmd << std::endl;
+
+	int j = 0, k = 0;
+	std::string map, id, x, y, z, tag;
+	for(std::string::size_type i = 0; i < cmd.size(); i++)
+	{
+		if(cmd[i] == ';' && j == 0)
+		{
+			j++;
+		}
+		else if(cmd[i] == ';' && j != 0)
+		{
+			// remember to add tag to clientside GameItem
+			items.emplace_back(GameItem(id, strTo<float>::value(x), strTo<float>::value(y), strTo<float>::value(z), tag));
+			id = "";
+			x = "";
+			y = "";
+			z = "";
+			tag = "";
+		}
+
+		// get the map command body
+		else if(j == 0)
+		{
+			map += cmd[i];
+		}
+		else if(cmd[i] == ':')
+		{
+			k++;
+		}
+		else
+		{
+			switch(k)
+			{
+				case 0: id += cmd[i]; break;
+				case 1: x += cmd[i]; break;
+				case 2: y += cmd[i]; break;
+				case 3: z += cmd[i]; break;
+				case 4: tag += cmd[i]; break;
+				case 5: k = 0; break;
+			}
+		}
+	}
+
+	std::cout << "MAP: " << map << std::endl;
+
+	// TODO
+	// check if map command identifier is the same as itemMap
+	
+	std::string mapType;
+	for(std::string::size_type i = 0; i < map.size(); i++)
+	{
+		if(i == 4)
+		{
+			mapType = map[i];
+		}
+	}
+	
+	server.send(cnn, "map:" + mapType, websocketpp::frame::opcode::text);
+
+	return true;
+}
+
 bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 {
 	int n = 0;
@@ -335,8 +458,4 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 
 	return true;
 }
-
-
-
-
 

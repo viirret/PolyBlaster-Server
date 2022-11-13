@@ -60,7 +60,7 @@ class Room
 		void broadcast(const std::string& cmd, const Connection& cnn) const;
 
 		// add information about the map to the server
-		bool createMap(const std::string& cmd);
+		bool createMap(const std::string& cmd, const Connection& cnn);
 
 		// all the connections in a room
 		ConnectionList connections;
@@ -92,6 +92,7 @@ class Room
 			map,
 			dead,
 			util,
+			item,
 			chat,
 			myteam,
 			getinfo,
@@ -108,6 +109,7 @@ class Room
 			{"map", cmd::map},
 			{"dead", cmd::dead},
 			{"util", cmd::util},
+			{"item", cmd::item},
 			{"chat", cmd::chat},
 			{"myteam", cmd::myteam},
 			{"getinfo", cmd::getinfo},
