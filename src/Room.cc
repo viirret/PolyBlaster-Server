@@ -122,6 +122,14 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 					scoreBlue++;
 				}
 			}
+			else if(tag == "healthBox")
+			{
+				server.send(cnn, "healthBox", websocketpp::frame::opcode::text);
+			}
+			else if(tag == "ammoBox")
+			{
+				server.send(cnn, "ammoBox", websocketpp::frame::opcode::text);
+			}
 
 			// destroy item from server
 
@@ -236,7 +244,9 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		case cmd::roominfo:
 		{
 			server.send(cnn, "roominfo:" + creator + ":" + std::to_string(max) + ":" + std::to_string(connections.size()) + 
-			":" + std::to_string(friendlyFire) + ":" + std::to_string(scorethreshold)+ ":" + std::to_string(warmup) + ":" + std::to_string(itemMap), 
+			":" + std::to_string(friendlyFire) + ":" + std::to_string(scorethreshold) + ":" + std::to_string(warmup) + ":" + 
+			std::to_string(itemMap) + ":" + std::to_string(scoreRed) + ":" + std::to_string(scoreBlue), 
+
 			websocketpp::frame::opcode::text);
 			return;
 		}
@@ -389,23 +399,19 @@ bool Room::createMap(const std::string& cmd, const Connection& cnn)
 		}
 	}
 
-	std::cout << "MAP: " << map << std::endl;
-
-	// TODO
-	// check if map command identifier is the same as itemMap
-	
 	std::string mapType;
 	for(std::string::size_type i = 0; i < map.size(); i++)
-	{
 		if(i == 4)
-		{
 			mapType = map[i];
-		}
-	}
-	
-	server.send(cnn, "map:" + mapType, websocketpp::frame::opcode::text);
 
-	return true;
+	if(itemMap == strTo<int>::value(mapType))
+	{
+		// tell client to create the map
+		server.send(cnn, "map:" + mapType, websocketpp::frame::opcode::text);
+		return true;
+	}
+	else
+		return false;
 }
 
 bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
