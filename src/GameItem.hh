@@ -6,6 +6,7 @@
 struct GameItem
 {
 	GameItem(std::string id, float x, float y, float z, std::string tag);
+	GameItem(){};
 
 	// unique id for every item
 	std::string id;
@@ -17,6 +18,9 @@ struct GameItem
 
 	// item's Unity tag
 	std::string tag;
+
+	// print all fields of item
+	std::string print();
 };
 
 #endif

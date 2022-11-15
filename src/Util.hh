@@ -8,6 +8,7 @@
 namespace Util
 {
 	std::string subStr(const std::string& str, int n);
+	int randomValue(int from, int to);
 
 	// differentiate std::weak ptr from each other
 	template <typename T, typename U>

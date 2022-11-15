@@ -79,6 +79,29 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			break;
 		}
 
+		case cmd::zone:
+		{
+			if(zones.empty())
+			{
+				server.send(cnn, "getzone", websocketpp::frame::opcode::text);
+			}
+			return;
+		}
+
+		case cmd::getzone:
+		{
+			// set zones as serverside items
+			gameItemCommand(msg, zones);
+
+			// print created zones
+			for(auto& z : zones)
+			{
+				std::cout << "ID " << z.id << " X " << z.x << " Y " << z.y << " Z " << z.z << std::endl;
+			}
+
+			return;
+		}
+
 		case cmd::item:
 		{
 			int n = 0;
@@ -348,8 +371,48 @@ void Room::update()
 		}
 	});
 
+	std::thread updateHazardZone([this]()
+	{
+		for(;;)
+		{
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+
+			// hazardZones have not been assigned
+			if(zones.empty())
+				continue;
+
+			// hazardtimer or cooldowntimer hasn't been reached
+			if((hazardTimer < hazardZoneTime && hazardZoneOn) || (hazardTimer < hazardZoneCooldown && !hazardZoneOn))
+			{
+				hazardTimer++;	
+			}
+
+			// hazardtimer has been reached
+			else if(hazardTimer >= hazardZoneTime && hazardZoneOn)
+			{
+				hazardZoneOn = false;
+				hazardTimer = 0;
+			}
+			
+			// cooldown has been reached
+			else if(hazardTimer >= hazardZoneCooldown && !hazardZoneOn)
+			{
+				hazardZoneOn = true;
+				hazardTimer = 0;
+				currentHazardIndex = Util::randomValue(0, zones.size());
+			}
+
+			std::string str = "hazard:";
+			str += hazardZoneOn ? "1:" : "0:";
+			str += zones[currentHazardIndex].print();
+
+			broadcast(str);
+		}
+	});
+
 	updateRoom.detach();
 	updateWarmup.detach();
+	updateHazardZone.detach();
 }
 
 bool Room::createMap(const std::string& cmd, const Connection& cnn)
@@ -357,8 +420,27 @@ bool Room::createMap(const std::string& cmd, const Connection& cnn)
 	std::cout << "MAP COMMAND" << std::endl;
 	std::cout << cmd << std::endl;
 
+	std::string map = gameItemCommand(cmd, items);
+
+	std::string mapType;
+	for(std::string::size_type i = 0; i < map.size(); i++)
+		if(i == 4)
+			mapType = map[i];
+
+	if(itemMap == strTo<int>::value(mapType))
+	{
+		// tell client to create the map
+		server.send(cnn, "map:" + mapType, websocketpp::frame::opcode::text);
+		return true;
+	}
+	else
+		return false;
+}
+
+std::string Room::gameItemCommand(const std::string& cmd, std::vector<GameItem>& gItem)
+{
 	int j = 0, k = 0;
-	std::string map, id, x, y, z, tag;
+	std::string body, id, x, y, z, tag;
 	for(std::string::size_type i = 0; i < cmd.size(); i++)
 	{
 		if(cmd[i] == ';' && j == 0)
@@ -368,7 +450,7 @@ bool Room::createMap(const std::string& cmd, const Connection& cnn)
 		else if(cmd[i] == ';' && j != 0)
 		{
 			// remember to add tag to clientside GameItem
-			items.emplace_back(GameItem(id, strTo<float>::value(x), strTo<float>::value(y), strTo<float>::value(z), tag));
+			gItem.emplace_back(GameItem(id, strTo<float>::value(x), strTo<float>::value(y), strTo<float>::value(z), tag));
 			id = "";
 			x = "";
 			y = "";
@@ -379,7 +461,7 @@ bool Room::createMap(const std::string& cmd, const Connection& cnn)
 		// get the map command body
 		else if(j == 0)
 		{
-			map += cmd[i];
+			body += cmd[i];
 		}
 		else if(cmd[i] == ':')
 		{
@@ -398,20 +480,8 @@ bool Room::createMap(const std::string& cmd, const Connection& cnn)
 			}
 		}
 	}
-
-	std::string mapType;
-	for(std::string::size_type i = 0; i < map.size(); i++)
-		if(i == 4)
-			mapType = map[i];
-
-	if(itemMap == strTo<int>::value(mapType))
-	{
-		// tell client to create the map
-		server.send(cnn, "map:" + mapType, websocketpp::frame::opcode::text);
-		return true;
-	}
-	else
-		return false;
+	
+	return body;
 }
 
 bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)

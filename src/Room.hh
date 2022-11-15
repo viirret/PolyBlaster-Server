@@ -62,6 +62,9 @@ class Room
 		// add information about the map to the server
 		bool createMap(const std::string& cmd, const Connection& cnn);
 
+		// command that has GameItems in the message
+		std::string gameItemCommand(const std::string& cmd, std::vector<GameItem>& gItem);
+
 		// all the connections in a room
 		ConnectionList connections;
 
@@ -84,6 +87,14 @@ class Room
 		// serverside items in a Room
 		std::vector<GameItem> items;
 
+		// hazard zones
+		std::vector<GameItem> zones;
+		const int hazardZoneTime = 30;
+		const int hazardZoneCooldown = 10;
+		int hazardTimer = 0;
+		bool hazardZoneOn = true;
+		int currentHazardIndex = 0;
+
 		// commands for a room
 		enum class cmd
 		{
@@ -93,9 +104,11 @@ class Room
 			dead,
 			util,
 			item,
+			zone,
 			chat,
 			myteam,
 			getinfo,
+			getzone,
 			roominfo,
 			leaveroom,
 			newplayer,
@@ -109,10 +122,12 @@ class Room
 			{"map", cmd::map},
 			{"dead", cmd::dead},
 			{"util", cmd::util},
+			{"zone", cmd::zone},
 			{"item", cmd::item},
 			{"chat", cmd::chat},
 			{"myteam", cmd::myteam},
 			{"getinfo", cmd::getinfo},
+			{"getzone", cmd::getzone},
 			{"roominfo", cmd::roominfo},
 			{"leaveroom", cmd::leaveroom},
 			{"newplayer", cmd::newplayer},
