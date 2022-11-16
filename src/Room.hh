@@ -11,6 +11,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <map>
 
 typedef websocketpp::server<websocketpp::config::asio> Websocket;
@@ -86,6 +87,10 @@ class Room
 
 		// serverside items in a Room
 		std::vector<GameItem> items;
+
+		// currently picked up items
+		std::vector<std::pair<GameItem, int>> deletedItems;
+		int recoverTime = 10;
 
 		// hazard zones
 		std::vector<GameItem> zones;

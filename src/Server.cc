@@ -230,7 +230,6 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 	updatePlayerCount.detach();
 
 	server.run();
-
 }
 
 void Server::removeLobbyConnection(Connection cnn)

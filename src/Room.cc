@@ -90,14 +90,10 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 		case cmd::getzone:
 		{
+			std::cout << "ZONES" << msg << std::endl;
+
 			// set zones as serverside items
 			gameItemCommand(msg, zones);
-
-			// print created zones
-			for(auto& z : zones)
-			{
-				std::cout << "ID " << z.id << " X " << z.x << " Y " << z.y << " Z " << z.z << std::endl;
-			}
 
 			return;
 		}
@@ -128,12 +124,8 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 					}
 				}
 			}
-			
-			// printing message fields
-			std::cout << "ID " << id << " x " << x << " y " << y << " z " << z << " tag " << tag << " client " << client << " team " << team << std::endl;
 
 			// do stuff based in ServerItem.tag (add score, add health, etc)
-			
 			if(tag == "pointItem")
 			{
 				if(team == "0")
@@ -154,9 +146,18 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 				server.send(cnn, "ammoBox", websocketpp::frame::opcode::text);
 			}
 
-			// destroy item from server
+			// delete item from server
+			for(int i = 0; i < (int)items.size(); i++)
+			{
+				if(items[i].id == id)
+				{
+					deletedItems.push_back(std::make_pair(items[i], 0));
+					items.erase(items.begin() + i);
+				}
+			}
 
 			// destroy item in clients
+			broadcast("capture:" + id);
 			
 			return;
 		}
@@ -259,6 +260,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			{
 				std::cout << "Couldn't pass map commands!" << std::endl;
 			}
+
 			return;
 		}
 
@@ -399,7 +401,7 @@ void Room::update()
 			{
 				hazardZoneOn = true;
 				hazardTimer = 0;
-				currentHazardIndex = Util::randomValue(0, zones.size());
+				currentHazardIndex = Util::randomValue(0, zones.size() - 1);
 			}
 
 			std::string str = "hazard:";
@@ -410,16 +412,37 @@ void Room::update()
 		}
 	});
 
+	std::thread updateItems([this]()
+	{
+		for(;;)
+		{
+			if(deletedItems.empty())
+				continue;
+			
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+
+			for(int i = 0; i < (int)deletedItems.size(); i++)
+			{
+				// check if item time exceeds 	
+				if(deletedItems[i].second > recoverTime)	
+				{
+					broadcast("newitem:" + deletedItems[i].first.print());
+					items.push_back(deletedItems[i].first);
+					deletedItems.erase(deletedItems.begin() + i);
+				}
+				deletedItems[i].second++;
+			}
+		}
+	});
+
 	updateRoom.detach();
 	updateWarmup.detach();
 	updateHazardZone.detach();
+	updateItems.detach();
 }
 
 bool Room::createMap(const std::string& cmd, const Connection& cnn)
 {
-	std::cout << "MAP COMMAND" << std::endl;
-	std::cout << cmd << std::endl;
-
 	std::string map = gameItemCommand(cmd, items);
 
 	std::string mapType;
@@ -456,6 +479,7 @@ std::string Room::gameItemCommand(const std::string& cmd, std::vector<GameItem>&
 			y = "";
 			z = "";
 			tag = "";
+			k = 0;
 		}
 
 		// get the map command body
@@ -476,7 +500,6 @@ std::string Room::gameItemCommand(const std::string& cmd, std::vector<GameItem>&
 				case 2: y += cmd[i]; break;
 				case 3: z += cmd[i]; break;
 				case 4: tag += cmd[i]; break;
-				case 5: k = 0; break;
 			}
 		}
 	}
