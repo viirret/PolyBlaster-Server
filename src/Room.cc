@@ -185,21 +185,20 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			// send message back to client confirming its death
 			server.send(cnn, msg, websocketpp::frame::opcode::text);
 
-			if(mode == GameMode::team_deathmatch)
+			if(mode == GameMode::team_deathmatch && !isWarmup)
 			{
 				int intteam = strTo<int>::value(team);
 
 				// update scores
 				if(intteam == 0)
-					scoreRed++;
-				else if(intteam == 1)
 					scoreBlue++;
-				
-				// send message back to server about respawning
-				server.send(cnn, "respawn", websocketpp::frame::opcode::text);
-
-				return;
+				else if(intteam == 1)
+					scoreRed++;
 			}
+
+			// send message back to server about respawning
+			server.send(cnn, "respawn", websocketpp::frame::opcode::text);
+
 			return;
 		}
 
@@ -333,6 +332,8 @@ void Room::update()
 
 				scoreRed = 0;
 				scoreBlue = 0;
+				warmupTime = 0;
+				isWarmup = true;
 			}
 
 			if(scoreBlue >= scorethreshold)
@@ -341,6 +342,8 @@ void Room::update()
 
 				scoreRed = 0;
 				scoreBlue = 0;
+				warmupTime = 0;
+				isWarmup = true;
 			}
 
 			if(oldScoreRed != scoreRed || oldScoreBlue != scoreBlue)
@@ -363,12 +366,16 @@ void Room::update()
 		for(;;)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(1));
-			timeSinceCreation++;
 
-			if(timeSinceCreation <= (size_t)warmup)
+			if(warmupTime < (size_t)warmup)
 			{
 				// send message about warmup time
-				broadcast("warmup:" + std::to_string(timeSinceCreation) + ":" + std::to_string(warmup));
+				warmupTime++;
+				broadcast("warmup:" + std::to_string(warmupTime) + ":" + std::to_string(warmup));
+			}
+			else
+			{
+				isWarmup = false;
 			}
 		}
 	});
@@ -510,7 +517,7 @@ std::string Room::gameItemCommand(const std::string& cmd, std::vector<GameItem>&
 bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 {
 	int n = 0;
-	std::string arg, client, px, py, pz, ry;
+	std::string arg, client, px, py, pz, ry, anim;
 
 	for(std::string::size_type i = 0; i < cmd.size(); i++)
 	{
@@ -526,6 +533,7 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 				case 3: py += cmd[i]; break;
 				case 4: pz += cmd[i]; break;
 				case 5: ry += cmd[i]; break;
+				case 6: anim += cmd[i]; break;
 				default: 
 				{
 					std::cout << "Message failed!" << std::endl;
@@ -538,7 +546,7 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 	std::string command;
 	std::stringstream ss;
 
-	ss << arg << ":" << client << ":" << px << ":" << py << ":" << pz << ":" << ry;
+	ss << arg << ":" << client << ":" << px << ":" << py << ":" << pz << ":" << ry << ":" << anim;
 	ss >> command;
 
 	float x = strTo<float>::value(px);

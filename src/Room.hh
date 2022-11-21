@@ -80,7 +80,7 @@ class Room
 		int itemMap;
 		
 		bool isWarmup = true;
-		size_t timeSinceCreation = 0;
+		size_t warmupTime = 0;
 
 		// 0 means red, 1 means blue; clientside numbering
 		int scoreRed = 0, scoreBlue = 0, oldScoreRed = 0, oldScoreBlue = 0;
