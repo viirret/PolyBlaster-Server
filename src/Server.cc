@@ -68,7 +68,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 				case cmd::join:
 				{
 					int n = 0;
-					std::string roomName, playerID;
+					std::string roomName, playerID, username;
 					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
 						if(cmd[i] == ':')
@@ -80,6 +80,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 								case 0: break;
 								case 1: roomName += cmd[i]; break;
 								case 2: playerID += cmd[i]; break;
+								case 3: username += cmd[i]; break;
 							}
 						}
 					}
@@ -94,7 +95,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 					
 					// change the connection from lobby to Room
 					removeLobbyConnection(cnn);
-					it->second.addConnection(cnn, playerID);
+					it->second.addConnection(cnn, playerID, username);
 
 					return;
 				}
@@ -114,7 +115,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 				case cmd::create:
 				{
 					int n = 0;
-					std::string id, playerID, max, mode, friendlyFire, scorethreshold, warmup, itemMap;
+					std::string id, playerID, max, mode, friendlyFire, scorethreshold, warmup, itemMap, username;
 					for(std::string::size_type i = 0; i < cmd.size(); i++)
 					{
 						if(cmd[i] == ':')
@@ -132,6 +133,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 								case 6: scorethreshold += cmd[i]; break;
 								case 7: warmup += cmd[i]; break;
 								case 8: itemMap += cmd[i]; break;
+								case 9: username += cmd[i]; break;
 								default: std::cout << "Something went wrong!" << std::endl;
 							}
 						}
@@ -157,7 +159,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 
 					// change connection from lobby to room
 					removeLobbyConnection(cnn);
-					room.first->second.addConnection(cnn, playerID);
+					room.first->second.addConnection(cnn, playerID, username);
 
 					// info other clients of new room
 					broadcast("newroom");

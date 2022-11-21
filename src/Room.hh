@@ -37,7 +37,7 @@ class Room
 		bool connectionHere(Connection& cnn) const;
 
 		// add new client to room
-		void addConnection(Connection& cnn, const std::string& playerID);
+		void addConnection(Connection& cnn, const std::string& playerID, const std::string& username);
 
 		// connection that has left the room
 		Connection* leftRoom();

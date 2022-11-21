@@ -12,9 +12,9 @@ bool Room::connectionHere(Connection& cnn) const
 
 ConnectionList Room::getConnections() { return connections; }
 
-void Room::addConnection(Connection& cnn, const std::string& playerID)
+void Room::addConnection(Connection& cnn, const std::string& playerID, const std::string& username)
 {
-	connections.emplace(cnn, Player(playerID));
+	connections.emplace(cnn, Player(playerID, username));
 
 	// inform the client of joining the game
 	server.send(cnn, "joined", websocketpp::frame::opcode::text);
@@ -245,6 +245,8 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 					info += c.second.getPos();
 					info += ":";
 					info += std::to_string(c.second.getTeam());
+					info += ":";
+					info += c.second.getUsername();
 					info += ";";
 				}
 			}

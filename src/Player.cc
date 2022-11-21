@@ -1,6 +1,6 @@
 #include "Player.hh"
 
-Player::Player(std::string playerID) : playerID(playerID)
+Player::Player(std::string playerID, std::string username) : playerID(playerID), username(username)
 {
 }
 
@@ -21,3 +21,4 @@ void Player::setTeam(int team) { this->team = team; }
 
 std::string Player::getId() { return playerID; }
 int Player::getTeam() { return team; }
+std::string Player::getUsername() { return username; }
