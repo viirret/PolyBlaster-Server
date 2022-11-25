@@ -255,6 +255,48 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
+		case cmd::hardpoint:
+		{
+			std::cout << "HARDPOINT MESSAGE RECEIVED" << std::endl;
+			// hardpoint:playerID:playerTeam
+
+			int n = 0;
+			std::string id, team;
+
+			for(std::string::size_type i = 0; i < msg.size(); i++)
+			{
+				if(msg[i] == ':')
+					n++;
+				else
+				{
+					switch(n)
+					{
+						case 0: break;
+						case 1: id += msg[i]; break;
+						case 2: team += msg[i]; break;
+					}
+				}
+			}
+
+			int iteam = strTo<int>::value(team);
+
+			if(iteam == 0)
+			{
+				scoreRed++;	
+				hardpointScore--;
+			}
+			else if(iteam == 1)
+			{
+				scoreBlue++;
+				hardpointScore--;
+			}
+
+			broadcast("hardpointScore:" + std::to_string(hardpointScore));
+			return;
+
+			// TODO add score to player that got the point
+		}
+
 		case cmd::map:
 		{
 			if(!createMap(msg, cnn))
@@ -297,7 +339,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		}
 
 		// these messages are to be sent to every client
-		case cmd::util: case cmd::chat:
+		case cmd::util: case cmd::chat: case cmd::asnd:
 		{
 			broadcast(msg);
 			return;
@@ -382,45 +424,6 @@ void Room::update()
 		}
 	});
 
-	std::thread updateHazardZone([this]()
-	{
-		for(;;)
-		{
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-
-			// hazardZones have not been assigned
-			if(zones.empty())
-				continue;
-
-			// hazardtimer or cooldowntimer hasn't been reached
-			if((hazardTimer < hazardZoneTime && hazardZoneOn) || (hazardTimer < hazardZoneCooldown && !hazardZoneOn))
-			{
-				hazardTimer++;	
-			}
-
-			// hazardtimer has been reached
-			else if(hazardTimer >= hazardZoneTime && hazardZoneOn)
-			{
-				hazardZoneOn = false;
-				hazardTimer = 0;
-			}
-			
-			// cooldown has been reached
-			else if(hazardTimer >= hazardZoneCooldown && !hazardZoneOn)
-			{
-				hazardZoneOn = true;
-				hazardTimer = 0;
-				currentHazardIndex = Util::randomValue(0, zones.size() - 1);
-			}
-
-			std::string str = "hazard:";
-			str += hazardZoneOn ? "1:" : "0:";
-			str += zones[currentHazardIndex].print();
-
-			broadcast(str);
-		}
-	});
-
 	std::thread updateItems([this]()
 	{
 		for(;;)
@@ -446,8 +449,52 @@ void Room::update()
 
 	updateRoom.detach();
 	updateWarmup.detach();
-	updateHazardZone.detach();
 	updateItems.detach();
+
+	if(mode == GameMode::hardpoint)
+	{
+		std::thread updateHazardZone([this]()
+		{
+			for(;;)
+			{
+				std::this_thread::sleep_for(std::chrono::seconds(1));
+
+				// hazardZones have not been assigned
+				if(zones.empty())
+					continue;
+
+				// hazardtimer or cooldowntimer hasn't been reached
+				if((hazardTimer < hazardZoneTime && hazardZoneOn) || (hazardTimer < hazardZoneCooldown && !hazardZoneOn))
+				{
+					hazardTimer++;	
+				}
+
+				// hazardtimer has been reached
+				else if(hazardTimer >= hazardZoneTime && hazardZoneOn)
+				{
+					hazardZoneOn = false;
+					hazardTimer = 0;
+				}
+				
+				// cooldown has been reached
+				else if(hazardTimer >= hazardZoneCooldown && !hazardZoneOn)
+				{
+					hazardZoneOn = true;
+					hazardTimer = 0;
+					hardpointScore = originalHardPointScore;
+					currentHazardIndex = Util::randomValue(0, zones.size() - 1);
+				}
+
+				std::string str = "hazard:";
+				str += hazardZoneOn ? "1:" : "0:";
+				str += zones[currentHazardIndex].print();
+
+				broadcast(str);
+			}
+		});
+
+		updateHazardZone.detach();
+	}
 }
 
 bool Room::createMap(const std::string& cmd, const Connection& cnn)

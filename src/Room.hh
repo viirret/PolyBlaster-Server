@@ -21,7 +21,8 @@ typedef std::map<Connection, Player, std::owner_less<Connection>> ConnectionList
 enum class GameMode
 {
 	team_deathmatch,
-	something_else
+	collect_items,
+	hardpoint
 };
 
 class Room
@@ -92,7 +93,7 @@ class Room
 		std::vector<std::pair<GameItem, int>> deletedItems;
 		int recoverTime = 10;
 
-		// hazard zones
+		// hazard zones (hardpoint)
 		std::vector<GameItem> zones;
 		const int hazardZoneTime = 30;
 		const int hazardZoneCooldown = 10;
@@ -100,12 +101,16 @@ class Room
 		bool hazardZoneOn = true;
 		int currentHazardIndex = 0;
 
+		const int originalHardPointScore = 20;
+		int hardpointScore = 20;
+
 		// commands for a room
 		enum class cmd
 		{
 			up,
 			snd,
 			map,
+			asnd,
 			dead,
 			util,
 			item,
@@ -115,6 +120,7 @@ class Room
 			getinfo,
 			getzone,
 			roominfo,
+			hardpoint,
 			leaveroom,
 			newplayer,
 			getplayers,
@@ -125,6 +131,7 @@ class Room
 			{"up", cmd::up},
 			{"snd", cmd::snd},
 			{"map", cmd::map},
+			{"asnd", cmd::asnd},
 			{"dead", cmd::dead},
 			{"util", cmd::util},
 			{"zone", cmd::zone},
@@ -134,6 +141,7 @@ class Room
 			{"getinfo", cmd::getinfo},
 			{"getzone", cmd::getzone},
 			{"roominfo", cmd::roominfo},
+			{"hardpoint", cmd::hardpoint},
 			{"leaveroom", cmd::leaveroom},
 			{"newplayer", cmd::newplayer},
 			{"getplayers", cmd::getplayers}
