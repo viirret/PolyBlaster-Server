@@ -54,12 +54,38 @@ std::ostringstream Room::getStatus()
 void Room::handleMessage(Connection& cnn, const std::string& msg)
 {
 	// identifier for command, works for all commands
-	std::string fw;
+	std::string fw, sender;
+
+	int parseIndex = 0;
 	for(std::string::size_type i = 0; i < msg.size(); i++)
 	{
-		if(msg[i] == ':') break;
-		else fw += msg[i];
+		if(msg[i] == ':') 
+			parseIndex++;
+		else if(parseIndex < 1)
+			fw += msg[i];
+		else if(parseIndex < 2)
+			sender += msg[i];
+		else
+			break;
 	}
+
+	for(auto& p : protectedCommands)
+	{
+		// command is protected command
+		if(fw == p)
+		{
+			for(auto& c : connections)
+			{
+				// if player tries to execute command as other player
+				if(Util::equals(cnn, c.first) && sender != c.second.getId())
+				{
+					std::cout << "CANCELLED SPOOFED MESSAGE!" << std::endl;
+					return;
+				}
+			}
+		}
+	}
+
 
 	switch(commands[fw])
 	{
@@ -258,7 +284,6 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		case cmd::hardpoint:
 		{
 			std::cout << "HARDPOINT MESSAGE RECEIVED" << std::endl;
-			// hardpoint:playerID:playerTeam
 
 			int n = 0;
 			std::string id, team;

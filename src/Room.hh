@@ -126,7 +126,7 @@ class Room
 			newplayer,
 		};
 
-		std::map<std::string, cmd> commands = 
+		std::map<std::string, cmd> commands
 		{
 			{"up", cmd::up},
 			{"snd", cmd::snd},
@@ -144,6 +144,11 @@ class Room
 			{"hardpoint", cmd::hardpoint},
 			{"leaveroom", cmd::leaveroom},
 			{"newplayer", cmd::newplayer},
+		};
+
+		std::vector<std::string> protectedCommands
+		{
+			"up",
 		};
 };
 
