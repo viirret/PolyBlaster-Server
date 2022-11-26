@@ -22,7 +22,8 @@ enum class GameMode
 {
 	team_deathmatch,
 	collect_items,
-	hardpoint
+	hardpoint,
+	tdm_with_static_spawns
 };
 
 class Room
@@ -123,7 +124,6 @@ class Room
 			hardpoint,
 			leaveroom,
 			newplayer,
-			getplayers,
 		};
 
 		std::map<std::string, cmd> commands = 
@@ -144,7 +144,6 @@ class Room
 			{"hardpoint", cmd::hardpoint},
 			{"leaveroom", cmd::leaveroom},
 			{"newplayer", cmd::newplayer},
-			{"getplayers", cmd::getplayers}
 		};
 };
 

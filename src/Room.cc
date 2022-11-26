@@ -319,18 +319,6 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
-		// get identifiers from all players in a room		
-		case cmd::getplayers:
-		{
-			std::string info = "getplayers:";
-
-			for(auto& c : connections)
-				info += c.second.getId() + ":";
-			
-			broadcast(info);
-			return;
-		}
-		
 		// these messages are not to be sent to itself
 		case cmd::newplayer: case cmd::snd:
 		{
