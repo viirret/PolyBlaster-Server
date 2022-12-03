@@ -45,14 +45,16 @@ class Server
 		{
 			join,
 			list, 
-			create
+			create,
+			deleteRoom
 		};
 
 		std::map<std::string, cmd> commands =
 		{
 			{"join", cmd::join},
 			{"list", cmd::list},
-			{"create", cmd::create}
+			{"create", cmd::create},
+			{"deleteRoom", cmd::deleteRoom}
 		};
 };
 

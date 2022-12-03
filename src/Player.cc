@@ -20,5 +20,14 @@ std::string Player::getPos()
 void Player::setTeam(int team) { this->team = team; }
 
 std::string Player::getId() { return playerID; }
+void Player::setId(std::string id) { this->playerID = id; }
+
 int Player::getTeam() { return team; }
 std::string Player::getUsername() { return username; }
+
+// kills and deaths
+void Player::addKill() { kills++; }
+void Player::addDeath() { deaths++; }
+
+int Player::getDeaths() { return deaths; }
+int Player::getKills() { return kills; }

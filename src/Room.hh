@@ -146,9 +146,11 @@ class Room
 			{"newplayer", cmd::newplayer},
 		};
 
+		// I am gradually trying to increase these until I have all of them
+		// most of the commands should work with this out of the box
 		std::vector<std::string> protectedCommands
 		{
-			"up",
+			"up"
 		};
 };
 

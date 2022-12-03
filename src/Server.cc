@@ -87,9 +87,9 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 					
 					auto it = rooms.find(roomName);
 
+					// player is already in a room
 					if(it == rooms.end())
 					{
-						server.send(cnn, "invalid-room", websocketpp::frame::opcode::text);
 						return;
 					}
 					
@@ -98,6 +98,43 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 					it->second.addConnection(cnn, playerID, username);
 
 					return;
+				}
+
+				case cmd::deleteRoom:
+				{
+					std::cout << "DELETEROOM called" << std::endl;
+
+					int n = 0;
+					std::string ID, roomID;
+
+					for(std::string::size_type i = 0; i < cmd.size(); i++)
+					{
+						if(cmd[i] == ':')
+							n++;
+						else
+						{
+							switch(n)
+							{
+								case 0: break;
+								case 1: ID += cmd[i]; break;
+								case 2: roomID += cmd[i]; break;
+							}
+						}
+					}
+
+					// loop all existing rooms
+					for(auto& r : rooms)
+					{
+						// find correct room
+						if(r.first == roomID)
+						{
+							std::cout << "CORRECT ROOM FOUND" << std::endl;
+							rooms.erase(r.first);
+						}
+					}
+
+					return;
+
 				}
 
 				case cmd::list:
@@ -172,7 +209,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 			}
 			
 			// inform client of faulty command
-			server.send(cnn, "invalid", websocketpp::frame::opcode::text);
+			server.send(cnn, "invalid:" + cmd, websocketpp::frame::opcode::text);
 		}	
 
 		catch(const std::exception& e)

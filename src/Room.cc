@@ -14,10 +14,21 @@ ConnectionList Room::getConnections() { return connections; }
 
 void Room::addConnection(Connection& cnn, const std::string& playerID, const std::string& username)
 {
-	connections.emplace(cnn, Player(playerID, username));
+	std::stringstream ss;
+	std::string data;
+	
+	ss << "joined:" << (int)mode << ":";
+	for(auto& c : connections)
+	{
+		ss << c.second.getUsername() << ":" << c.second.getTeam() << ";";
+	}
+
+	ss >> data;
 
 	// inform the client of joining the game
-	server.send(cnn, "joined", websocketpp::frame::opcode::text);
+	server.send(cnn, data, websocketpp::frame::opcode::text);
+
+	connections.emplace(cnn, Player(playerID, username));
 
 	// get information about the map in the Room
 	server.send(cnn, "map:" + std::to_string(itemMap), websocketpp::frame::opcode::text);
@@ -47,7 +58,7 @@ void Room::leaveRoom(Connection& cnn)
 std::ostringstream Room::getStatus()
 {
 	std::ostringstream ss;
-	ss << connections.size() << ":" << max;
+	ss << connections.size() << ":" << max << ":" << (int)mode;
 	return ss;
 }
 
@@ -69,9 +80,9 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			break;
 	}
 
+	// when executing protected commands, check that we're using our Unity id
 	for(auto& p : protectedCommands)
 	{
-		// command is protected command
 		if(fw == p)
 		{
 			for(auto& c : connections)
@@ -102,9 +113,11 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		{
 			leftConnection = &cnn;
 			leaveRoom(cnn);
+			broadcast(msg);
 			break;
 		}
 
+		// the zones are created in Unity so this is a little trick to handle that	
 		case cmd::zone:
 		{
 			if(zones.empty())
@@ -116,7 +129,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 		case cmd::getzone:
 		{
-			std::cout << "ZONES" << msg << std::endl;
+			std::cout << "ZONES\n" << msg << std::endl;
 
 			// set zones as serverside items
 			gameItemCommand(msg, zones);
@@ -192,7 +205,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		{
 			// normal death
 			int n = 0;
-			std::string player, team;
+			std::string player, team, killer;
 			for(std::string::size_type i = 0; i < msg.size(); i++)
 			{
 				if(msg[i] == ':')
@@ -204,14 +217,52 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 						case 0: break;
 						case 1: player += msg[i]; break;
 						case 2: team += msg[i]; break;
+						case 3: killer += msg[i]; break;
 					}
 				}
 			}
 
-			// send message back to client confirming its death
-			server.send(cnn, msg, websocketpp::frame::opcode::text);
+			// manual spoofchecking
+			for(auto& c : connections)
+			{
+				if(!Util::equals(cnn, c.first) && player == c.second.getId())
+				{
+					std::cout << "SPOOFING DETECTED" << std::endl;
+					return;
+				}
+			}
 
-			if(mode == GameMode::team_deathmatch && !isWarmup)
+			
+			int deadDeads;
+			int killerKills;
+
+			// update server data
+			for(auto& c : connections)
+			{
+				if(c.second.getId() == player)
+				{
+					c.second.addDeath();
+					deadDeads = c.second.getDeaths();
+				}
+
+				// kill
+				else if(c.second.getId() == killer)
+				{
+					c.second.addKill();
+					killerKills = c.second.getKills();
+				}
+			}
+
+			std::stringstream ss;
+			std::string deadCommand;
+			ss << player << ":" << team << ":" << killer << ":" << deadDeads << ":" << killerKills;
+			ss >> deadCommand;
+
+			
+			// send message back to client confirming its death
+			broadcast(deadCommand);
+
+			if(!(mode == GameMode::collect_items) && !isWarmup)
 			{
 				int intteam = strTo<int>::value(team);
 
@@ -266,6 +317,8 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 				// do not send information about yourself, to yourself
 				if(!Util::equals(c.first, cnn))
 				{
+					std::cout << "PLAYER " << c.second.getId() << " KILLS " << c.second.getKills() << " DEATHS " << c.second.getDeaths() << std::endl;
+
 					info += c.second.getId();
 					info += ":";
 					info += c.second.getPos();
@@ -273,6 +326,10 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 					info += std::to_string(c.second.getTeam());
 					info += ":";
 					info += c.second.getUsername();
+					info += ":";
+					info += std::to_string(c.second.getKills());
+					info += ":";
+					info += std::to_string(c.second.getDeaths());
 					info += ";";
 				}
 			}
@@ -344,8 +401,54 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
+		case cmd::newplayer:
+		{
+			std::string command, id, team;
+			int n = 0;
+
+			for(std::string::size_type i = 0; i < msg.size(); i++)
+			{
+				if(msg[i] == ':')
+					n++;
+				else
+				{
+					switch(n)
+					{
+						case 0: command += msg[i]; break;
+						case 1: id += msg[i]; break;
+						case 2: team += msg[i]; break;
+					}
+				}
+			}
+
+			int kills;
+			int deaths;
+			std::string username;
+			bool foundId = false;
+
+			for(auto& c : connections)
+			{
+				if(c.second.getId() == id)
+				{
+					kills = c.second.getKills();
+					deaths = c.second.getDeaths();
+					username = c.second.getUsername();
+					foundId = true;
+				}
+			}
+
+			std::stringstream ss;
+			std::string newPlayerMessage;
+			ss << command << ":" << id << ":" << team << ":" << username << ":" << kills << ":" << deaths;
+			ss >> newPlayerMessage;
+
+			broadcast(newPlayerMessage, cnn);
+			
+			return;
+		}
+
 		// these messages are not to be sent to itself
-		case cmd::newplayer: case cmd::snd:
+		case cmd::snd:
 		{
 			broadcast(msg, cnn);
 			return;
@@ -359,7 +462,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 		}
 
 		// inform client of faulty command
-		server.send(cnn, "invalid", websocketpp::frame::opcode::text);
+		server.send(cnn, "invalid:" + msg, websocketpp::frame::opcode::text);
 	}
 }
 
@@ -382,6 +485,8 @@ void Room::update()
 	{
 		for(;;)
 		{
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+
 			// update scores	
 			if(scoreRed >= scorethreshold)
 			{
@@ -413,17 +518,7 @@ void Room::update()
 				oldScoreBlue = scoreBlue;
 			}
 
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-
-		}
-	});
-
-	std::thread updateWarmup([this]()
-	{
-		for(;;)
-		{
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-
+			// warmup
 			if(warmupTime < (size_t)warmup)
 			{
 				// send message about warmup time
@@ -434,18 +529,8 @@ void Room::update()
 			{
 				isWarmup = false;
 			}
-		}
-	});
 
-	std::thread updateItems([this]()
-	{
-		for(;;)
-		{
-			if(deletedItems.empty())
-				continue;
-			
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-
+			// loop deleted items
 			for(int i = 0; i < (int)deletedItems.size(); i++)
 			{
 				// check if item time exceeds 	
@@ -457,21 +542,11 @@ void Room::update()
 				}
 				deletedItems[i].second++;
 			}
-		}
-	});
 
-	updateRoom.detach();
-	updateWarmup.detach();
-	updateItems.detach();
 
-	if(mode == GameMode::hardpoint)
-	{
-		std::thread updateHazardZone([this]()
-		{
-			for(;;)
+			// updatating related to hardpoint
+			if(mode == GameMode::hardpoint)
 			{
-				std::this_thread::sleep_for(std::chrono::seconds(1));
-
 				// hazardZones have not been assigned
 				if(zones.empty())
 					continue;
@@ -504,16 +579,19 @@ void Room::update()
 
 				broadcast(str);
 			}
-		});
 
-		updateHazardZone.detach();
-	}
+		}
+
+	});
+
+	updateRoom.detach();
 }
 
 bool Room::createMap(const std::string& cmd, const Connection& cnn)
 {
 	std::string map = gameItemCommand(cmd, items);
 
+	// get map id from cmd
 	std::string mapType;
 	for(std::string::size_type i = 0; i < map.size(); i++)
 		if(i == 4)
@@ -622,7 +700,7 @@ bool Room::updatePlayer(const std::string& cmd, const Connection& cnn)
 
 	// here we can do some checks for the command, if needed in the future
 
-	// send position for each client except yourself
+	// send position  each client except yourself
 	broadcast(command, cnn);
 
 	return true;
