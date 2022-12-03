@@ -1,0 +1,9 @@
+version: '3.8'
+services: 
+  polyblaster:
+    build: .
+    container_name: polyblaster
+    environment:
+      - PORT=8080
+    ports:
+      - "11000:8080"
