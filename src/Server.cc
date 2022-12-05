@@ -151,6 +151,7 @@ Server::Server(int argc, char** argv) : argc(argc), argv(argv)
 
 				case cmd::create:
 				{
+					std::cout << "CREATE ROOM CALLED" << std::endl;
 					int n = 0;
 					std::string id, playerID, max, mode, friendlyFire, scorethreshold, warmup, itemMap, username;
 					for(std::string::size_type i = 0; i < cmd.size(); i++)

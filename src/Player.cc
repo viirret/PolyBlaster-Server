@@ -28,6 +28,3 @@ std::string Player::getUsername() { return username; }
 // kills and deaths
 void Player::addKill() { kills++; }
 void Player::addDeath() { deaths++; }
-
-int Player::getDeaths() { return deaths; }
-int Player::getKills() { return kills; }

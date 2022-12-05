@@ -232,44 +232,40 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 				}
 			}
 
-			
-			int deadDeads;
-			int killerKills;
-
 			// update server data
 			for(auto& c : connections)
 			{
+				// the killed received death
 				if(c.second.getId() == player)
 				{
 					c.second.addDeath();
-					deadDeads = c.second.getDeaths();
 				}
 
-				// kill
+				// killer gets kill
 				else if(c.second.getId() == killer)
 				{
 					c.second.addKill();
-					killerKills = c.second.getKills();
 				}
 			}
 
 			std::stringstream ss;
 			std::string deadCommand;
-			ss << player << ":" << team << ":" << killer << ":" << deadDeads << ":" << killerKills;
+			ss << "dead:" << player << ":" << team << ":" << killer;
 			ss >> deadCommand;
 
-			
 			// send message back to client confirming its death
 			broadcast(deadCommand);
 
-			if(!(mode == GameMode::collect_items) && !isWarmup)
+			
+			// update scoreboard if correct teammode and it isn't suicide
+			if(!(mode == GameMode::collect_items) && player != killer)
 			{
-				int intteam = strTo<int>::value(team);
+				int deathTeam = strTo<int>::value(team);
 
 				// update scores
-				if(intteam == 0)
+				if(deathTeam == 0)
 					scoreBlue++;
-				else if(intteam == 1)
+				else if(deathTeam == 1)
 					scoreRed++;
 			}
 
@@ -317,7 +313,7 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 				// do not send information about yourself, to yourself
 				if(!Util::equals(c.first, cnn))
 				{
-					std::cout << "PLAYER " << c.second.getId() << " KILLS " << c.second.getKills() << " DEATHS " << c.second.getDeaths() << std::endl;
+					std::cout << "PLAYER " << c.second.getId() << " KILLS " << c.second.kills << " DEATHS " << c.second.deaths << std::endl;
 
 					info += c.second.getId();
 					info += ":";
@@ -327,9 +323,9 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 					info += ":";
 					info += c.second.getUsername();
 					info += ":";
-					info += std::to_string(c.second.getKills());
+					info += std::to_string(c.second.kills);
 					info += ":";
-					info += std::to_string(c.second.getDeaths());
+					info += std::to_string(c.second.deaths);
 					info += ";";
 				}
 			}
@@ -424,16 +420,14 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			int kills;
 			int deaths;
 			std::string username;
-			bool foundId = false;
 
 			for(auto& c : connections)
 			{
 				if(c.second.getId() == id)
 				{
-					kills = c.second.getKills();
-					deaths = c.second.getDeaths();
+					kills = c.second.kills;
+					deaths = c.second.deaths;
 					username = c.second.getUsername();
-					foundId = true;
 				}
 			}
 
@@ -518,18 +512,30 @@ void Room::update()
 				oldScoreBlue = scoreBlue;
 			}
 
-			// warmup
+			// warmup is going on
 			if(warmupTime < (size_t)warmup)
 			{
 				// send message about warmup time
 				warmupTime++;
 				broadcast("warmup:" + std::to_string(warmupTime) + ":" + std::to_string(warmup));
 			}
-			else
+			// warmup has ended
+			else if(warmupTime > (size_t)warmup)
 			{
 				isWarmup = false;
-			}
 
+				// reset players stats
+				for(auto& c : connections)
+				{
+					c.second.deaths = 0;
+					c.second.kills = 0;
+				}
+
+				// reset scores
+				scoreBlue = 0;
+				scoreRed = 0;
+			}
+			
 			// loop deleted items
 			for(int i = 0; i < (int)deletedItems.size(); i++)
 			{
