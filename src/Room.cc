@@ -127,6 +127,13 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 			return;
 		}
 
+		case cmd::getscore:
+		{
+			server.send(cnn, "getscore:" + std::to_string(scoreRed) + ":" + std::to_string(scoreBlue), 
+				websocketpp::frame::opcode::text);
+			return;
+		}
+
 		case cmd::getzone:
 		{
 			std::cout << "ZONES\n" << msg << std::endl;
@@ -255,7 +262,6 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 			// send message back to client confirming its death
 			broadcast(deadCommand);
-
 			
 			// update scoreboard if correct teammode and it isn't suicide
 			if(!(mode == GameMode::collect_items) && player != killer)

@@ -120,6 +120,7 @@ class Room
 			myteam,
 			getinfo,
 			getzone,
+			getscore,
 			roominfo,
 			hardpoint,
 			leaveroom,
@@ -140,6 +141,7 @@ class Room
 			{"myteam", cmd::myteam},
 			{"getinfo", cmd::getinfo},
 			{"getzone", cmd::getzone},
+			{"getscore", cmd::getscore},
 			{"roominfo", cmd::roominfo},
 			{"hardpoint", cmd::hardpoint},
 			{"leaveroom", cmd::leaveroom},
@@ -147,11 +149,14 @@ class Room
 		};
 
 		// I am gradually trying to increase these until I have all of them
-		// most of the commands should work with this out of the box
 		std::vector<std::string> protectedCommands
 		{
-			"up"
+			"up", "snd", "asnd", "dead", "util", "zone", "chat", "myteam",
+			"hardpoint", "leaveroom", "newplayer"
 		};
+
+		// TODO
+		// MAP, ITEM, GETZONE
 };
 
 #endif
