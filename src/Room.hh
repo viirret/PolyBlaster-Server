@@ -93,15 +93,26 @@ class Room
 		// currently picked up items
 		std::vector<std::pair<GameItem, int>> deletedItems;
 		int recoverTime = 10;
-
-		// hazard zones (hardpoint)
+		
 		std::vector<GameItem> zones;
-		const int hazardZoneTime = 30;
-		const int hazardZoneCooldown = 10;
+
+		// hazard zone (hardpoint)
+		
+		// the actual timer
 		int hazardTimer = 0;
+
+		// hazard zone lenght
+		const int hazardZoneTime = 60;
+
+		// cooldown time
+		const int hazardZoneCooldown = 30;
+		
 		bool hazardZoneOn = true;
+
+		// currently playing hazardzone as int
 		int currentHazardIndex = 0;
 
+		// scoring with hardpoints
 		const int originalHardPointScore = 20;
 		int hardpointScore = 20;
 
