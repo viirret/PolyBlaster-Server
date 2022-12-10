@@ -283,6 +283,8 @@ void Room::handleMessage(Connection& cnn, const std::string& msg)
 
 		case cmd::myteam:
 		{
+			std::cout << "MYTEAM CALLED" << std::endl;
+
 			int n = 0;
 			std::string player, team;
 			for(std::string::size_type i = 0; i < msg.size(); i++)
