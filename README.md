@@ -38,3 +38,9 @@ and run the server with default port of 8080, or change it with command line arg
 ./start.sh 9132
 ```
 
+# Connecting client to the server
+
+For automatic connection you can put your server's url to the build file **build_Data/StreamingAssets/url**. You can also manually add your address in the play menu.
+
+Always remember to add **ws://** prefix to the url.
+
